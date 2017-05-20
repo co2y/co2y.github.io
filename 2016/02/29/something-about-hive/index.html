@@ -1,0 +1,1002 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,hive,sql on hadoop,tez,impala," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="要讨论班了，赶快写点东西">
+<meta name="keywords" content="hadoop,hive,sql on hadoop,tez,impala">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hive相关及延伸">
+<meta property="og:url" content="http://co2y.github.io/2016/02/29/something-about-hive/index.html">
+<meta property="og:site_name" content="Co2y&#39;s Blog">
+<meta property="og:description" content="要讨论班了，赶快写点东西">
+<meta property="og:image" content="http://co2y.github.io/img/hive-1.png">
+<meta property="og:image" content="http://co2y.github.io/img/hive-2.png">
+<meta property="og:image" content="http://co2y.github.io/img/hive-3.png">
+<meta property="og:image" content="http://co2y.github.io/img/hive-4.png">
+<meta property="og:image" content="http://co2y.github.io/img/hive-5.png">
+<meta property="og:updated_time" content="2016-12-06T05:51:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hive相关及延伸">
+<meta name="twitter:description" content="要讨论班了，赶快写点东西">
+<meta name="twitter:image" content="http://co2y.github.io/img/hive-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://co2y.github.io/2016/02/29/something-about-hive/"/>
+
+
+
+
+
+  <title> hive相关及延伸 | Co2y's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Co2y's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">solver</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2016/02/29/something-about-hive/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Co2y">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Co2y's Blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Co2y's Blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                hive相关及延伸
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-02-29T22:21:22+08:00">
+                2016-02-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Hive/" itemprop="url" rel="index">
+                    <span itemprop="name">Hive</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/02/29/something-about-hive/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/29/something-about-hive/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>要讨论班了，赶快写点东西</p>
+<a id="more"></a>
+<h1 id="从hadoop开始说起"><a href="#从hadoop开始说起" class="headerlink" title="从hadoop开始说起"></a>从hadoop开始说起</h1><h2 id="先挖坑，待填"><a href="#先挖坑，待填" class="headerlink" title="先挖坑，待填"></a>先挖坑，待填</h2><h1 id="hive详解"><a href="#hive详解" class="headerlink" title="hive详解"></a>hive详解</h1><h2 id="hive架构"><a href="#hive架构" class="headerlink" title="hive架构"></a>hive架构</h2><p>下图是hive的架构图</p>
+<p><img src="/img/hive-1.png" alt=""></p>
+<h3 id="体系结构"><a href="#体系结构" class="headerlink" title="体系结构"></a>体系结构</h3><p>Hive的体系结构可以分为以下几部分</p>
+<ol>
+<li>用户接口</li>
+<li>Hive将元数据存储在数据库中，如mysql、derby。Hive中的元数据包括表的名字，表的列和分区及其属性，表的属性（是否为外部表等），表的数据所在目录等。</li>
+<li>解释器、编译器、优化器完成HQL查询语句从词法分析、语法分析、编译、优化以及查询计划的生成。生成的查询计划存储在HDFS中，并在随后有MapReduce调用执行。</li>
+<li>Hive的数据存储在HDFS中，大部分的查询、计算由MapReduce完成</li>
+</ol>
+<h3 id="数据存储"><a href="#数据存储" class="headerlink" title="数据存储"></a>数据存储</h3><p>对于数据存储，Hive没有专门的数据存储格式，也没有为数据建立索引，用户可以非常自由的组织Hive中的表，只需要在创建表的时候告诉Hive数据中的列分隔符和行分隔符，Hive就可以解析数据。Hive中所有的数据都存储在HDFS中，存储结构主要包括数据库、文件、表和视图。Hive中包含以下数据模型：Table内部表，External Table外部表，Partition分区，Bucket桶。Hive默认可以直接加载文本文件，还支持sequence file 、RCFile。</p>
+<h3 id="执行原理"><a href="#执行原理" class="headerlink" title="执行原理"></a>执行原理</h3><p>下图是hive的执行原理</p>
+<p><img src="/img/hive-2.png" alt=""></p>
+<p>Hive构建在Hadoop之上，</p>
+<ol>
+<li>HQL中对查询语句的解释、优化、生成查询计划是由Hive完成的</li>
+<li>所有的数据都是存储在Hadoop中</li>
+<li>查询计划被转化为MapReduce任务，在Hadoop中执行（有些查询没有MR任务，如：select * from table）</li>
+<li>Hadoop和Hive都是用UTF-8编码的</li>
+</ol>
+<h3 id="sql编译过程"><a href="#sql编译过程" class="headerlink" title="sql编译过程"></a>sql编译过程</h3><p> Hive编译器将一个Hive QL转换操作符。操作符Operator是Hive的最小的处理单元，每个操作符代表HDFS的一个操作或者一道MapReduce作业。Operator都是hive定义的一个处理过程，所有的操作构成了Operator图，hive正是基于这些图关系来处理诸如limit, group by, join等操作。这个在第二部分会有详解。</p>
+<p> hive编译器的组成</p>
+<p> <img src="/img/hive-3.png" alt=""></p>
+<p> 编译流程</p>
+<p> <img src="/img/hive-4.png" alt=""></p>
+<h3 id="与数据库的区别"><a href="#与数据库的区别" class="headerlink" title="与数据库的区别"></a>与数据库的区别</h3><ul>
+<li>数据格式。Hive中没有定义专门的数据格式，数据格式可以由用户指定，用户定义数据格式需要指定三个属性：列分隔符（通常为空格、”\t”、”\x001″）、行分隔符（”\n”）以及读取文件数据的方法（Hive中默认有三个文件格式TextFile，SequenceFile以及RCFile）。由于在加载数据的过程中，不需要从用户数据格式到Hive定义的数据格式的转换，因此，Hive在加载的过程中不会对数据本身进行任何修改，而只是将数据内容复制或者移动到相应的HDFS目录中。而在数据库中，不同的数据库有不同的存储引擎，定义了自己的数据格式。所有数据都会按照一定的组织存储，因此，数据库加载数据的过程会比较耗时。</li>
+<li>数据更新。由于Hive是针对数据仓库应用设计的，而数据仓库的内容是读多写少的。因此，Hive中不支持对数据的改写和添加，所有的数据都是在加载的时候中确定好的。而数据库中的数据通常是需要经常进行修改的，因此可以使用INSERT INTO … VALUES添加数据，使用UPDATE … SET修改数据。</li>
+<li>索引。之前已经说过，Hive在加载数据的过程中不会对数据进行任何处理，甚至不会对数据进行扫描，因此也没有对数据中的某些Key建立索引。Hive要访问数据中满足条件的特定值时，需要暴力扫描整个数据，因此访问延迟较高。由于MapReduce的引入， Hive可以并行访问数据，因此即使没有索引，对于大数据量的访问，Hive仍然可以体现出优势。数据库中，通常会针对一个或者几个列建立索引，因此对于少量的特定条件的数据的访问，数据库可以有很高的效率，较低的延迟。由于数据的访问延迟较高，决定了Hive不适合在线数据查询。</li>
+<li>可扩展性。由于Hive是建立在Hadoop之上的，因此Hive的可扩展性是和Hadoop的可扩展性是一致的（世界上最大的Hadoop集群在Yahoo!，2009年的规模在4000台节点左右）。而数据库由于ACID语义的严格限制，扩展行非常有限。目前最先进的并行数据库Oracle在理论上的扩展能力也只有100台左右。</li>
+</ul>
+<h3 id="元数据库"><a href="#元数据库" class="headerlink" title="元数据库"></a>元数据库</h3><table>
+<thead>
+<tr>
+<th>表名</th>
+<th>说明</th>
+<th>关联键</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TBLS</td>
+<td>所有hive表的基本信息</td>
+<td>TBL_ID,SD_ID</td>
+</tr>
+<tr>
+<td>TABLE_PARAM</td>
+<td>表级属性，如是否外部表，表注释等</td>
+<td>TBL_ID</td>
+</tr>
+<tr>
+<td>COLUMNS</td>
+<td>Hive表字段信息(字段注释，字段名，字段类型，字段序号)</td>
+<td>SD_ID</td>
+</tr>
+<tr>
+<td>SDS</td>
+<td>所有hive表、表分区所对应的hdfs数据目录和数据格式</td>
+<td>SD_ID,SERDE_ID</td>
+</tr>
+<tr>
+<td>SERDE_PARAM</td>
+<td>序列化反序列化信息，如行分隔符、列分隔符、NULL的表示字符等</td>
+<td>SERDE_ID</td>
+</tr>
+<tr>
+<td>PARTITIONS</td>
+<td>Hive表分区信息</td>
+<td>PART_ID,SD_ID,TBL_ID</td>
+</tr>
+<tr>
+<td>PARTITION_KEYS</td>
+<td>Hive分区表分区键</td>
+<td>TBL_ID</td>
+</tr>
+<tr>
+<td>PARTITION_KEY_VALS</td>
+<td>Hive表分区名(键值)</td>
+<td>PART_ID</td>
+</tr>
+</tbody>
+</table>
+<p>从上面表的内容来看，hive整个创建表的过程已经比较清楚了。</p>
+<ol>
+<li>解析用户提交hive语句，对其进行解析，分解为表、字段、分区等hive对象</li>
+<li>根据解析到的信息构建对应的表、字段、分区等对象，从 SEQUENCE_TABLE中获取构建对象的最新ID，与构建对象信息（名称，类型等）一同通过DAO方法写入到元数据表中去，成功后将SEQUENCE_TABLE中对应的最新ID+5。</li>
+</ol>
+<h3 id="join及查询操作"><a href="#join及查询操作" class="headerlink" title="join及查询操作"></a>join及查询操作</h3><ul>
+<li>Hive只支持等值连接（equality joins）、外连接（outer joins）和（left/right joins）。Hive不支持所有非等值的连接，因为非等值连接非常难转化到map/reduce任务。</li>
+<li>join 时，每次 map/reduce 任务的逻辑： reducer 会缓存 join 序列中除了最后一个表的所有表的记录， 再通过最后一个表将结果序列化到文件系统。这一实现有助于在reduce端减少内存的使用量。实践中，应该把最大的那个表写在最后（否则会因为缓存浪费大量内存）。</li>
+<li>LEFT SEMI JOIN 是 IN/EXISTS 子查询的一种更高效的实现。Hive 当前没有实现 IN/EXISTS 子查询，所以你可以用 LEFT SEMI JOIN 重写你的子查询语句。LEFT SEMI JOIN的限制是， JOIN子句中右边的表只能在ON子句中设置过滤条件，在WHERE子句、SELECT子句或其他地方过滤都不行。</li>
+<li>当前的Hive不支持在一条查询语句中有多Distinct。如果要在Hive查询语句中实现多Distinct，需要使用至少n+1条查询语句（n为distinct的数目），前n条查询分别对n个列去重，最后一条查询语句对n个去重之后的列做Join操作，得到最终结果。</li>
+</ul>
+<h2 id="hive-sql-to-mapreduce"><a href="#hive-sql-to-mapreduce" class="headerlink" title="hive sql to mapreduce"></a>hive sql to mapreduce</h2><h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><h4 id="join"><a href="#join" class="headerlink" title="join"></a>join</h4><figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> u.name, o.orderid <span class="keyword">from</span> <span class="keyword">order</span> o <span class="keyword">join</span> <span class="keyword">user</span> u <span class="keyword">on</span> o.uid = u.uid;</div></pre></td></tr></table></figure>
+<p>在map的输出value中为不同表的数据打上tag标记，在reduce阶段根据tag判断数据来源。MapReduce的过程如下（这里只是说明最基本的Join的实现，还有其他的实现方式）</p>
+<p><img src="/img/hive-5.png" alt=""></p>
+<h3 id="其它例子见"><a href="#其它例子见" class="headerlink" title="其它例子见"></a>其它例子见</h3><p><a href="http://tech.meituan.com/hive-sql-to-mapreduce.html" target="_blank" rel="external">美团技术博客</a></p>
+<blockquote>
+<p>本节全部内容均参考该博客</p>
+</blockquote>
+<h3 id="转换流程"><a href="#转换流程" class="headerlink" title="转换流程"></a>转换流程</h3><ol>
+<li>Antlr定义SQL的语法规则，完成SQL词法，语法解析，将SQL转化为抽象语法树AST Tree</li>
+<li>遍历AST Tree，抽象出查询的基本组成单元QueryBlock</li>
+<li>遍历QueryBlock，翻译为执行操作树OperatorTree</li>
+<li>逻辑层优化器进行OperatorTree变换，合并不必要的ReduceSinkOperator，减少shuffle数据量</li>
+<li>遍历OperatorTree，翻译为MapReduce任务</li>
+<li>物理层优化器进行MapReduce任务的变换，生成最终的执行计划</li>
+</ol>
+<h2 id="hive-优化"><a href="#hive-优化" class="headerlink" title="hive 优化"></a>hive 优化</h2><p>本节从实际应用和参数配置的角度来优化hive</p>
+<h3 id="根据hadoop计算框架的特性可能会发生以下问题"><a href="#根据hadoop计算框架的特性可能会发生以下问题" class="headerlink" title="根据hadoop计算框架的特性可能会发生以下问题"></a>根据hadoop计算框架的特性可能会发生以下问题</h3><ol>
+<li>数据倾斜</li>
+<li>jobs太多</li>
+<li>count(distinct ),在数据量大的情况下，效率较低，如果是多count(distinct )效率更低，因为count(distinct)是按group by 字段分组，按distinct字段排序，一般这种分布方式是很倾斜的。举个例子：比如男uv,女uv，像淘宝一天30亿的pv，如果按性别分组，分配2个reduce,每个reduce处理15亿数据。</li>
+</ol>
+<p>通用方法：</p>
+<ol>
+<li>解决数据倾斜问题。sum,count,max,min等UDAF，不怕数据倾斜问题,hadoop在map端的汇总合并优化，使数据倾斜不成问题。set hive.groupby.skewindata=true;</li>
+<li>减少job数。</li>
+<li>设置合理的map reduce的task数，能有效提升性能。(比如，10w+级别的计算，用160个reduce，那是相当的浪费，1个足够)。</li>
+<li>对小文件进行合并，是行至有效的提高调度效率的方法，假如所有的作业设置合理的文件数，对云梯的整体调度效率也会产生积极的正向影响。</li>
+</ol>
+<h3 id="性能底下的根源"><a href="#性能底下的根源" class="headerlink" title="性能底下的根源"></a>性能底下的根源</h3><p>在mapreduce框架不变的情况下，Hadoop的核心能力是parition和sort，因而这也是优化的根本。</p>
+<h3 id="配置角度优化"><a href="#配置角度优化" class="headerlink" title="配置角度优化"></a>配置角度优化</h3><h4 id="列裁剪"><a href="#列裁剪" class="headerlink" title="列裁剪"></a>列裁剪</h4><p>Hive 在读数据的时候，可以只读取查询中所需要用到的列，而忽略其它列。 例如，若有以下查询：</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> a,b <span class="keyword">FROM</span> q <span class="keyword">WHERE</span> <span class="built_in">e</span>&lt;<span class="number">10</span>;</div></pre></td></tr></table></figure>
+<p>　　在实施此项查询中，Q 表有 5 列（a，b，c，d，e），Hive 只读取查询逻辑中真实需要 的 3 列 a、b、e，而忽略列 c，d；这样做节省了读取开销，中间表存储开销和数据整合开销。</p>
+<p>　　裁剪所对应的参数项为：hive.optimize.cp=true（默认值为真）</p>
+<h4 id="分区裁剪"><a href="#分区裁剪" class="headerlink" title="分区裁剪"></a>分区裁剪</h4><figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> (SELECTT a1,<span class="built_in">COUNT</span>(<span class="number">1</span>) <span class="keyword">FROM</span> T <span class="keyword">GROUP</span> <span class="keyword">BY</span> a1) subq <span class="keyword">WHERE</span> subq.prtn=<span class="number">100</span>; #（多余分区）</div><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> T1 <span class="keyword">JOIN</span> (<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> T2) subq <span class="keyword">ON</span> (T1.a1=subq.a2) <span class="keyword">WHERE</span> subq.prtn=<span class="number">100</span>;</div></pre></td></tr></table></figure>
+<p>查询语句若将“subq.prtn=100”条件放入子查询中更为高效，可以减少读入的分区 数目。 Hive 自动执行这种裁剪优化。</p>
+<p>　　分区参数为：hive.optimize.pruner=true（默认值为真）
+　　</p>
+<h4 id="join-1"><a href="#join-1" class="headerlink" title="join"></a>join</h4><p>在编写带有 join 操作的代码语句时，应该将条目少的表/子查询放在 Join 操作符的左边。 因为在 Reduce 阶段，位于 Join 操作符左边的表的内容会被加载进内存，载入条目较少的表 可以有效减少 OOM（out of memory）即内存溢出。所以对于同一个 key 来说，对应的 value 值小的放前，大的放后，这便是“小表放前”原则。 若一条语句中有多个 Join，依据 Join 的条件相同与否，有不同的处理方法。</p>
+<h4 id="map-join"><a href="#map-join" class="headerlink" title="map join"></a>map join</h4><p>Join 操作在 Map 阶段完成，不再需要Reduce，前提条件是需要的数据在 Map 的过程中可以访问到。</p>
+<p>相关的参数为：</p>
+<ul>
+<li>hive.join.emit.interval = 1000</li>
+<li>hive.mapjoin.size.key = 10000</li>
+<li>hive.mapjoin.cache.numrows = 10000</li>
+</ul>
+<h4 id="group-by"><a href="#group-by" class="headerlink" title="group by"></a>group by</h4><p>进行GROUP BY操作时需要注意一下几点：</p>
+<ul>
+<li><p>Map端部分聚合<br>　　事实上并不是所有的聚合操作都需要在reduce部分进行，很多聚合操作都可以先在Map端进行部分聚合，然后reduce端得出最终结果。</p>
+<p> 这里需要修改的参数为：</p>
+</li>
+</ul>
+<p>　　hive.map.aggr=true（用于设定是否在 map 端进行聚合，默认值为真） hive.groupby.mapaggr.checkinterval=100000（用于设定 map 端进行聚合操作的条目数）</p>
+<ul>
+<li>有数据倾斜时进行负载均衡　</li>
+</ul>
+<p>　　此处需要设定 hive.groupby.skewindata，当选项设定为 true 是，生成的查询计划有两 个 MapReduce 任务。在第一个 MapReduce 中，map 的输出结果集合会随机分布到 reduce 中， 每个 reduce 做部分聚合操作，并输出结果。这样处理的结果是，相同的 Group By Key 有可 能分发到不同的 reduce 中，从而达到负载均衡的目的；第二个 MapReduce 任务再根据预处 理的数据结果按照 Group By Key 分布到 reduce 中（这个过程可以保证相同的 Group By Key 分布到同一个 reduce 中），最后完成最终的聚合操作。
+　　</p>
+<h4 id="合并小文件"><a href="#合并小文件" class="headerlink" title="合并小文件"></a>合并小文件</h4><p>我们知道文件数目小，容易在文件存储端造成瓶颈，给 HDFS 带来压力，影响处理效率。对此，可以通过合并Map和Reduce的结果文件来消除这样的影响。</p>
+<p>　　用于设置合并属性的参数有：</p>
+<ul>
+<li>是否合并Map输出文件：hive.merge.mapfiles=true（默认值为真）</li>
+<li>是否合并Reduce 端输出文件：hive.merge.mapredfiles=false（默认值为假）</li>
+<li>合并文件的大小：hive.merge.size.per.task=256<em>1000</em>1000（默认值为 256000000）</li>
+</ul>
+<h4 id="改进sql"><a href="#改进sql" class="headerlink" title="改进sql"></a>改进sql</h4><h4 id="无效ID在关联时的数据倾斜问题"><a href="#无效ID在关联时的数据倾斜问题" class="headerlink" title="无效ID在关联时的数据倾斜问题"></a>无效ID在关联时的数据倾斜问题</h4><p>问题：日志中常会出现信息丢失，比如每日约为 20 亿的全网日志，其中的 user_id 为主 键，在日志收集过程中会丢失，出现主键为 null 的情况，如果取其中的 user_id 和 bmw_users 关联，就会碰到数据倾斜的问题。原因是 Hive 中，主键为 null 值的项会被当做相同的 Key 而分配进同一个计算 Map。</p>
+<p>解决方法 1：user_id 为空的不参与关联，子查询过滤 null</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="built_in">log</span> a</div><div class="line"><span class="keyword">JOIN</span> bmw_users b <span class="keyword">ON</span> a.user_id <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">AND</span> a.user_id=b.user_id</div><div class="line"><span class="keyword">UNION</span> <span class="keyword">All</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="built_in">log</span> a <span class="keyword">WHERE</span> a.user_id <span class="keyword">IS</span> <span class="literal">NULL</span></div></pre></td></tr></table></figure>
+<p>解决方法 2 如下所示：函数过滤 null</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="keyword">log</span> a <span class="keyword">LEFT</span> <span class="keyword">OUTER</span></div><div class="line"><span class="keyword">JOIN</span> bmw_users b <span class="keyword">ON</span></div><div class="line"><span class="keyword">CASE</span> <span class="keyword">WHEN</span> a.user_id <span class="keyword">IS</span> <span class="literal">NULL</span> <span class="keyword">THEN</span> <span class="keyword">CONCAT</span>(‘dp_hive’,<span class="keyword">RAND</span>()) <span class="keyword">ELSE</span> a.user_id <span class="keyword">END</span> =b.user_id;</div></pre></td></tr></table></figure>
+<p>调优结果：原先由于数据倾斜导致运行时长超过 1 小时，解决方法 1 运行每日平均时长 25 分钟，解决方法 2 运行的每日平均时长在 20 分钟左右。优化效果很明显。</p>
+<p>　　我们在工作中总结出：解决方法2比解决方法1效果更好，不但IO少了，而且作业数也少了。解决方法1中log读取两次，job 数为2。解决方法2中 job 数是1。这个优化适合无效 id（比如-99、 ‘’，null 等）产生的倾斜问题。把空值的 key 变成一个字符串加上随机数，就能把倾斜的 数据分到不同的Reduce上，从而解决数据倾斜问题。因为空值不参与关联，即使分到不同 的 Reduce 上，也不会影响最终的结果。附上 Hadoop 通用关联的实现方法是：关联通过二次排序实现的，关联的列为 partion key，关联的列和表的 tag 组成排序的 group key，根据 pariton key分配Reduce。同一Reduce内根据group key排序。
+　　</p>
+<h4 id="不同数据类型关联产生的倾斜问题"><a href="#不同数据类型关联产生的倾斜问题" class="headerlink" title="不同数据类型关联产生的倾斜问题"></a>不同数据类型关联产生的倾斜问题</h4><p>问题：不同数据类型 id 的关联会产生数据倾斜问题。</p>
+<p>　　一张表 s8 的日志，每个商品一条记录，要和商品表关联。但关联却碰到倾斜的问题。 s8 的日志中有 32 为字符串商品 id，也有数值商品 id，日志中类型是 string 的，但商品中的 数值 id 是 bigint 的。猜想问题的原因是把 s8 的商品 id 转成数值 id 做 hash 来分配 Reduce， 所以字符串 id 的 s8 日志，都到一个 Reduce 上了，解决的方法验证了这个猜测。</p>
+<p>解决方法：把数据类型转换成字符串类型</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> s8_log a <span class="keyword">LEFT</span> <span class="keyword">OUTER</span></div><div class="line"><span class="keyword">JOIN</span> r_auction_auctions b <span class="keyword">ON</span> a.auction_id=<span class="keyword">CASE</span>(b.auction_id <span class="keyword">AS</span> <span class="keyword">STRING</span>)</div></pre></td></tr></table></figure>
+<h4 id="利用Hive对UNION-ALL优化的特性"><a href="#利用Hive对UNION-ALL优化的特性" class="headerlink" title="利用Hive对UNION ALL优化的特性"></a>利用Hive对UNION ALL优化的特性</h4><p>多表 union all 会优化成一个 job。</p>
+<p>问题：比如推广效果表要和商品表关联，效果表中的 auction_id 列既有 32 为字符串商 品 id，也有数字 id，和商品表关联得到商品的信息。</p>
+<p>解决方法：</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> effect a</div><div class="line"><span class="keyword">JOIN</span></div><div class="line">(<span class="keyword">SELECT</span> auction_id <span class="keyword">AS</span> auction_id <span class="keyword">FROM</span> auctions</div><div class="line"><span class="keyword">UNION</span> <span class="keyword">All</span></div><div class="line"><span class="keyword">SELECT</span> auction_string_id <span class="keyword">AS</span> auction_id <span class="keyword">FROM</span> auctions) b</div><div class="line"><span class="keyword">ON</span> a.auction_id=b.auction_id</div></pre></td></tr></table></figure>
+<p>比分别过滤数字 id，字符串 id 然后分别和商品表关联性能要好。</p>
+<p>　　这样写的好处：1 个 MapReduce 作业，商品表只读一次，推广效果表只读取一次。把 这个 SQL 换成 Map/Reduce 代码的话，Map 的时候，把 a 表的记录打上标签 a，商品表记录 每读取一条，打上标签 b，变成两个<key,value>对，&lt;(b,数字 id),value&gt;，&lt;(b,字符串 id),value&gt;。</key,value></p>
+<p>　　所以商品表的 HDFS 读取只会是一次。</p>
+<h4 id="解决Hive对UNION-ALL优化的短板"><a href="#解决Hive对UNION-ALL优化的短板" class="headerlink" title="解决Hive对UNION ALL优化的短板"></a>解决Hive对UNION ALL优化的短板</h4><p>Hive 对 union all 的优化的特性：对 union all 优化只局限于非嵌套查询。</p>
+<ul>
+<li>消灭子查询内的 group by</li>
+</ul>
+<h5 id="示例-1：子查询内有-group-by"><a href="#示例-1：子查询内有-group-by" class="headerlink" title="示例 1：子查询内有 group by"></a>示例 1：子查询内有 group by</h5><figure class="highlight armasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT </span>* FROM</div><div class="line">(<span class="keyword">SELECT </span>* FROM t1 GROUP <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span> UNION ALL <span class="keyword">SELECT </span>* FROM t2 GROUP <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span>)t3</div><div class="line"><span class="symbol">GROUP</span> <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span></div></pre></td></tr></table></figure>
+<p>　　从业务逻辑上说，子查询内的 GROUP BY 怎么都看显得多余（功能上的多余，除非有 COUNT(DISTINCT)），如果不是因为 Hive Bug 或者性能上的考量（曾经出现如果不执行子查询 GROUP BY，数据得不到正确的结果的 Hive Bug）。所以这个 Hive 按经验转换成如下所示：</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t1 <span class="keyword">UNION</span> <span class="keyword">ALL</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t2)t3 <span class="keyword">GROUP</span> <span class="keyword">BY</span> c1,c2,c3</div></pre></td></tr></table></figure>
+<p>　　调优结果：经过测试，并未出现 union all 的 Hive Bug，数据是一致的。MapReduce 的 作业数由 3 减少到 1。</p>
+<p>   t1 相当于一个目录，t2 相当于一个目录，对 Map/Reduce 程序来说，t1，t2 可以作为 Map/Reduce 作业的 mutli inputs。这可以通过一个 Map/Reduce 来解决这个问题。Hadoop 的 计算框架，不怕数据多，就怕作业数多。</p>
+<p>　　但如果换成是其他计算平台如 Oracle，那就不一定了，因为把大的输入拆成两个输入， 分别排序汇总后 merge（假如两个子排序是并行的话），是有可能性能更优的（比如希尔排 序比冒泡排序的性能更优）。</p>
+<ul>
+<li>消灭子查询内的 COUNT(DISTINCT)，MAX，MIN。</li>
+</ul>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT </span>* FROM</div><div class="line">(<span class="keyword">SELECT </span>* FROM t1</div><div class="line"><span class="symbol">UNION</span> ALL <span class="keyword">SELECT </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span> COUNT(DISTINCT <span class="built_in">c4</span>) FROM t2 GROUP <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span>) t3</div><div class="line"><span class="symbol">GROUP</span> <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span><span class="comment">;</span></div></pre></td></tr></table></figure>
+<p>　　由于子查询里头有 COUNT(DISTINCT)操作，直接去 GROUP BY 将达不到业务目标。这时采用 临时表消灭 COUNT(DISTINCT)作业不但能解决倾斜问题，还能有效减少 jobs。</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="symbol">INSERT</span> t4 <span class="keyword">SELECT </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span>,<span class="built_in">c4</span> FROM t2 GROUP <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span><span class="comment">;</span></div><div class="line"><span class="keyword">SELECT </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span>,SUM(income),SUM(uv) FROM</div><div class="line">(<span class="keyword">SELECT </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span>,income,<span class="number">0</span> AS uv FROM t1</div><div class="line"><span class="symbol">UNION</span> ALL</div><div class="line"><span class="keyword">SELECT </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span>,<span class="number">0</span> AS income,<span class="number">1</span> AS uv FROM t2) t3</div><div class="line"><span class="symbol">GROUP</span> <span class="keyword">BY </span><span class="built_in">c1</span>,<span class="built_in">c2</span>,<span class="built_in">c3</span><span class="comment">;</span></div></pre></td></tr></table></figure>
+<p>　　<br>　job 数是 2，减少一半，而且两次 Map/Reduce 比 COUNT(DISTINCT)效率更高。</p>
+<p>   调优结果：千万级别的类目表，member 表，与 10 亿级得商品表关联。原先 1963s 的任务经过调整，1152s 即完成。</p>
+<ul>
+<li>消灭子查询内的 JOIN</li>
+</ul>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span></div><div class="line">(<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t1 <span class="keyword">UNION</span> <span class="keyword">ALL</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t4 <span class="keyword">UNION</span> <span class="keyword">ALL</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t2 <span class="keyword">JOIN</span> t3 <span class="keyword">ON</span> t2.id=t3.id) x</div><div class="line"><span class="keyword">GROUP</span> <span class="keyword">BY</span> c1,c2;</div></pre></td></tr></table></figure>
+<p>上面代码运行会有 5 个 jobs。加入先 JOIN 生存临时表的话 t5，然后 UNION ALL，会变成 2 个 jobs。    　<br><figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> OVERWRITE TABLE t5</div><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> t2 <span class="keyword">JOIN</span> t3 <span class="keyword">ON</span> t2.id=t3.id;</div><div class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> (t1 <span class="keyword">UNION</span> <span class="keyword">ALL</span> t4 <span class="keyword">UNION</span> <span class="keyword">ALL</span> t5);</div></pre></td></tr></table></figure></p>
+<p>　　调优结果显示：针对千万级别的广告位表，由原先 5 个 Job 共 15 分钟，分解为 2 个 job 一个 8-10 分钟，一个3分钟。</p>
+<h4 id="GROUP-BY替代COUNT-DISTINCT-达到优化效果"><a href="#GROUP-BY替代COUNT-DISTINCT-达到优化效果" class="headerlink" title="GROUP BY替代COUNT(DISTINCT)达到优化效果"></a>GROUP BY替代COUNT(DISTINCT)达到优化效果</h4><p>计算 uv 的时候，经常会用到 COUNT(DISTINCT)，但在数据比较倾斜的时候 COUNT(DISTINCT) 会比较慢。这时可以尝试用 GROUP BY 改写代码计算 uv。</p>
+<p>原有代码</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> OVERWRITE <span class="keyword">TABLE</span> s_dw_tanx_adzone_uv <span class="keyword">PARTITION</span> (ds=<span class="number">20120329</span>)</div><div class="line"><span class="keyword">SELECT</span> <span class="number">20120329</span> <span class="keyword">AS</span> thedate,adzoneid,<span class="keyword">COUNT</span>(<span class="keyword">DISTINCT</span> acookie) <span class="keyword">AS</span> uv <span class="keyword">FROM</span> s_ods_log_tanx_pv t <span class="keyword">WHERE</span> t.ds=<span class="number">20120329</span> <span class="keyword">GROUP</span> <span class="keyword">BY</span> adzoneid</div></pre></td></tr></table></figure>
+<p>　　关于COUNT(DISTINCT)的数据倾斜问题不能一概而论，要依情况而定，下面是我测试的一组数据：测试数据：169857条</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">#统计每日IP</div><div class="line"><span class="keyword">CREATE</span> TABLE ip_2014_12_29 <span class="keyword">AS</span> <span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="keyword">DISTINCT</span> ip) <span class="keyword">AS</span> IP <span class="keyword">FROM</span> logdfs <span class="keyword">WHERE</span> logdate=<span class="string">'2014_12_29'</span>;</div><div class="line">耗时：24.805 seconds</div><div class="line">#统计每日IP（改造）</div><div class="line"><span class="keyword">CREATE</span> TABLE ip_2014_12_29 <span class="keyword">AS</span> <span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="number">1</span>) <span class="keyword">AS</span> IP <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span> ip <span class="keyword">from</span> logdfs <span class="keyword">WHERE</span> logdate=<span class="string">'2014_12_29'</span>) tmp;</div><div class="line">耗时：46.833 seconds</div></pre></td></tr></table></figure>
+<p>　　测试结果表名：明显改造后的语句比之前耗时，这是因为改造后的语句有2个SELECT，多了一个job，这样在数据量小的时候，数据不会存在倾斜问题。</p>
+<h3 id="优化总结"><a href="#优化总结" class="headerlink" title="优化总结"></a>优化总结</h3><ul>
+<li>hive.exec.reducers.bytes.per.reducer   ＃这个参数控制一个job会有多少个reducer来处理，依据的是输入文件的总大小。默认1GB。</li>
+<li>hive.exec.reducers.max    ＃这个参数控制最大的reducer的数量， 如果 input / bytes per reduce &gt; max  则会启动这个参数所指定的reduce个数。  这个并不会影响mapre.reduce.tasks参数的设置。默认的max是999。</li>
+<li>mapred.reduce.tasks ＃这个参数如果指定了，hive就不会用它的estimation函数来自动计算reduce的个数，而是用这个参数来启动reducer。默认是-1。</li>
+</ul>
+<p>如果reduce太少：如果数据量很大，会导致这个reduce异常的慢，从而导致这个任务不能结束，也有可能会OOM 2、如果reduce太多：  产生的小文件太多，合并起来代价太高，namenode的内存占用也会增大。如果我们不指定mapred.reduce.tasks， hive会自动计算需要多少个reducer。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/hive/" rel="tag"># hive</a>
+          
+            <a href="/tags/sql-on-hadoop/" rel="tag"># sql on hadoop</a>
+          
+            <a href="/tags/tez/" rel="tag"># tez</a>
+          
+            <a href="/tags/impala/" rel="tag"># impala</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/13/something-with-bigdata/" rel="next" title="一些关于大数据的概念">
+                <i class="fa fa-chevron-left"></i> 一些关于大数据的概念
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/14/tez-bug-1/" rel="prev" title="tez安装过程中的一个问题">
+                tez安装过程中的一个问题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/02/29/something-about-hive/"
+           data-title="hive相关及延伸" data-url="http://co2y.github.io/2016/02/29/something-about-hive/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Co2y" />
+          <p class="site-author-name" itemprop="name">Co2y</p>
+           
+              <p class="site-description motion-element" itemprop="description">think, record, do</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/co2y" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2408622401" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#从hadoop开始说起"><span class="nav-number">1.</span> <span class="nav-text">从hadoop开始说起</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#先挖坑，待填"><span class="nav-number">1.1.</span> <span class="nav-text">先挖坑，待填</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hive详解"><span class="nav-number">2.</span> <span class="nav-text">hive详解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#hive架构"><span class="nav-number">2.1.</span> <span class="nav-text">hive架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#体系结构"><span class="nav-number">2.1.1.</span> <span class="nav-text">体系结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据存储"><span class="nav-number">2.1.2.</span> <span class="nav-text">数据存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#执行原理"><span class="nav-number">2.1.3.</span> <span class="nav-text">执行原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sql编译过程"><span class="nav-number">2.1.4.</span> <span class="nav-text">sql编译过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#与数据库的区别"><span class="nav-number">2.1.5.</span> <span class="nav-text">与数据库的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#元数据库"><span class="nav-number">2.1.6.</span> <span class="nav-text">元数据库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#join及查询操作"><span class="nav-number">2.1.7.</span> <span class="nav-text">join及查询操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive-sql-to-mapreduce"><span class="nav-number">2.2.</span> <span class="nav-text">hive sql to mapreduce</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#例子"><span class="nav-number">2.2.1.</span> <span class="nav-text">例子</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#join"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">join</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它例子见"><span class="nav-number">2.2.2.</span> <span class="nav-text">其它例子见</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#转换流程"><span class="nav-number">2.2.3.</span> <span class="nav-text">转换流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive-优化"><span class="nav-number">2.3.</span> <span class="nav-text">hive 优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#根据hadoop计算框架的特性可能会发生以下问题"><span class="nav-number">2.3.1.</span> <span class="nav-text">根据hadoop计算框架的特性可能会发生以下问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#性能底下的根源"><span class="nav-number">2.3.2.</span> <span class="nav-text">性能底下的根源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置角度优化"><span class="nav-number">2.3.3.</span> <span class="nav-text">配置角度优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#列裁剪"><span class="nav-number">2.3.3.1.</span> <span class="nav-text">列裁剪</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分区裁剪"><span class="nav-number">2.3.3.2.</span> <span class="nav-text">分区裁剪</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#join-1"><span class="nav-number">2.3.3.3.</span> <span class="nav-text">join</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#map-join"><span class="nav-number">2.3.3.4.</span> <span class="nav-text">map join</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#group-by"><span class="nav-number">2.3.3.5.</span> <span class="nav-text">group by</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#合并小文件"><span class="nav-number">2.3.3.6.</span> <span class="nav-text">合并小文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#改进sql"><span class="nav-number">2.3.3.7.</span> <span class="nav-text">改进sql</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#无效ID在关联时的数据倾斜问题"><span class="nav-number">2.3.3.8.</span> <span class="nav-text">无效ID在关联时的数据倾斜问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#不同数据类型关联产生的倾斜问题"><span class="nav-number">2.3.3.9.</span> <span class="nav-text">不同数据类型关联产生的倾斜问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#利用Hive对UNION-ALL优化的特性"><span class="nav-number">2.3.3.10.</span> <span class="nav-text">利用Hive对UNION ALL优化的特性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决Hive对UNION-ALL优化的短板"><span class="nav-number">2.3.3.11.</span> <span class="nav-text">解决Hive对UNION ALL优化的短板</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#示例-1：子查询内有-group-by"><span class="nav-number">2.3.3.11.1.</span> <span class="nav-text">示例 1：子查询内有 group by</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GROUP-BY替代COUNT-DISTINCT-达到优化效果"><span class="nav-number">2.3.3.12.</span> <span class="nav-text">GROUP BY替代COUNT(DISTINCT)达到优化效果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优化总结"><span class="nav-number">2.3.4.</span> <span class="nav-text">优化总结</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Co2y</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"co2y"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+  
+
+
+  
+
+</body>
+</html>

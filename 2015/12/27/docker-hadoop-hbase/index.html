@@ -1,0 +1,843 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,hbase,docker,zookeeper," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="github上没找到直接搭好的docker镜像，于是自己搭了一遍，这里只是搭建的步骤，相关脚本以及docker镜像暂不公开。">
+<meta name="keywords" content="hadoop,hbase,docker,zookeeper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用docker搭建hbase集群">
+<meta property="og:url" content="http://co2y.github.io/2015/12/27/docker-hadoop-hbase/index.html">
+<meta property="og:site_name" content="Co2y&#39;s Blog">
+<meta property="og:description" content="github上没找到直接搭好的docker镜像，于是自己搭了一遍，这里只是搭建的步骤，相关脚本以及docker镜像暂不公开。">
+<meta property="og:updated_time" content="2016-12-06T05:53:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="利用docker搭建hbase集群">
+<meta name="twitter:description" content="github上没找到直接搭好的docker镜像，于是自己搭了一遍，这里只是搭建的步骤，相关脚本以及docker镜像暂不公开。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://co2y.github.io/2015/12/27/docker-hadoop-hbase/"/>
+
+
+
+
+
+  <title> 利用docker搭建hbase集群 | Co2y's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Co2y's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">solver</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2015/12/27/docker-hadoop-hbase/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Co2y">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Co2y's Blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Co2y's Blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                利用docker搭建hbase集群
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-12-27T19:58:05+08:00">
+                2015-12-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2015/12/27/docker-hadoop-hbase/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/27/docker-hadoop-hbase/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>github上没找到直接搭好的docker镜像，于是自己搭了一遍，这里只是搭建的步骤，相关脚本以及docker镜像暂不公开。</p>
+<a id="more"></a>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>两台机器，192.168.0.2和192.168.0.1，主机名分别为server2和server1，搭建一个两节点的HBase集群，把server1作为master+slave，server2作为slave。</p>
+<h2 id="具体步骤"><a href="#具体步骤" class="headerlink" title="具体步骤"></a>具体步骤</h2><p>这个集群是用docker搭建的，当然不用docker也可以，关于docker环境不再赘述。用docker只是多了一层封装，迁移和删除要方便一些。</p>
+<h3 id="准备阶段"><a href="#准备阶段" class="headerlink" title="准备阶段"></a>准备阶段</h3><p>先在两台机器上拉取ubuntu 14.04镜像。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="selector-tag">sudo</span> <span class="selector-tag">docker</span> <span class="selector-tag">pull</span> <span class="selector-tag">ubuntu</span><span class="selector-pseudo">:14.04</span></div></pre></td></tr></table></figure>
+<p>在两台机器上分别启动对应容器，这里用的网络模式是host模式，这样访问host对应的端口就是访问容器，也就是局域网内都可以访问集群。</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">sudo docker run -it <span class="params">--name</span> hbase-master -v <span class="string">/home/co2y/hbase-master</span>:<span class="string">/home</span> <span class="params">--net=host</span> ubuntu<span class="function">:14.04</span></div><div class="line">ctrl+p+q 退回host</div><div class="line"></div><div class="line">sudo docker run -it <span class="params">--name</span> hbase-slave -v <span class="string">/home/co2y/hbase-master</span>:<span class="string">/home</span> <span class="params">--net=host</span> ubuntu<span class="function">:14.04</span></div><div class="line">ctrl+p+q 退回host</div></pre></td></tr></table></figure>
+<h3 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h3><p>下面配置相关环境，以server1上的hbase-master为例，两个容器操作基本一样。</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo docker exec -it hbase-<span class="keyword">master</span> <span class="title">bash</span></div></pre></td></tr></table></figure>
+<p>先更新软件源，安装vim</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">apt-<span class="built_in">get</span> <span class="keyword">update</span></div><div class="line"></div><div class="line">apt-<span class="built_in">get</span> install <span class="keyword">vim</span></div></pre></td></tr></table></figure>
+<h4 id="配置Java环境"><a href="#配置Java环境" class="headerlink" title="配置Java环境"></a>配置Java环境</h4><figure class="highlight crystal"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">apt-get install openjdk-<span class="number">7</span>-jdk</div><div class="line"></div><div class="line">vim /etc/profile 和~<span class="regexp">/.bashrc  （所有的环境变量两个文件各写一份）</span></div><div class="line"></div><div class="line">JAVA_HOME=/usr<span class="regexp">/lib/jvm</span><span class="regexp">/java-7-openjdk-amd64</span></div><div class="line">PATH=$PATH:$JAVA_HOME/bin</div><div class="line">CLASSPATH=$JAVA_HOME/<span class="class"><span class="keyword">lib</span>:$<span class="title">JAVA_HOME</span>/<span class="title">jre</span>/<span class="title">lib</span></span></div><div class="line">export JAVA_HOME CLASSPATH PATH</div><div class="line"></div><div class="line">source /etc/profile</div></pre></td></tr></table></figure>
+<h4 id="配置ssh"><a href="#配置ssh" class="headerlink" title="配置ssh"></a>配置ssh</h4><figure class="highlight awk"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">apt-get install openssh-server</div><div class="line">修改<span class="regexp">/etc/</span>ssh<span class="regexp">/ssh_config和/</span>etc<span class="regexp">/ssh/</span>sshd_config里面的端口为<span class="number">2222</span></div></pre></td></tr></table></figure>
+<h5 id="配置ssh免密码登陆"><a href="#配置ssh免密码登陆" class="headerlink" title="配置ssh免密码登陆"></a>配置ssh免密码登陆</h5><figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">ssh-keygen -t rsa</div><div class="line">把另一台机器的公钥和自己的公钥添加到authorized_keys</div><div class="line">cat id_rsa.pub &gt;&gt; <span class="regexp">~/.ssh/</span>authorized_keys</div><div class="line"></div><div class="line">sed -ri <span class="string">'s/UsePAM yes/#UsePAM yes/g'</span> <span class="regexp">/etc/</span>ssh/sshd_config</div><div class="line">sed -ri <span class="string">'s/#UsePAM no/UsePAM no/g'</span> <span class="regexp">/etc/</span>ssh/sshd_config</div><div class="line"></div><div class="line"><span class="regexp">/etc/</span>init.d/ssh start</div></pre></td></tr></table></figure>
+<h4 id="配置-etc-hosts"><a href="#配置-etc-hosts" class="headerlink" title="配置/etc/hosts"></a>配置/etc/hosts</h4><figure class="highlight lsl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">vim /etc/hosts</div><div class="line"><span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>	server1</div><div class="line"><span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>   server2</div></pre></td></tr></table></figure>
+<h4 id="配置Hadoop"><a href="#配置Hadoop" class="headerlink" title="配置Hadoop"></a>配置Hadoop</h4><p>下载</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">apt-get install wget</div><div class="line"></div><div class="line">wget https:<span class="comment">//archive.apache.org/dist/hadoop/common/hadoop-2.3.0/hadoop-2.3.0.tar.gz</span></div><div class="line"></div><div class="line">tar -zxvf hadoop-<span class="number">2.3</span>.<span class="number">0</span><span class="selector-class">.tar</span><span class="selector-class">.gz</span></div></pre></td></tr></table></figure>
+<p>配置Hadoop环境变量</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">vim /etc/profile （~/.bashrc也写一份）</div><div class="line"></div><div class="line">HADOOP_HOME=/root/hadoop-2.3.0</div><div class="line">PATH=<span class="variable">$PATH</span>:<span class="variable">$HADOOP_HOME</span>/bin:<span class="variable">$HADOOP_HOME</span>/sbin</div><div class="line"><span class="built_in">export</span> HADOOP_HOME PATH</div><div class="line"></div><div class="line"><span class="built_in">source</span> /etc/profile</div></pre></td></tr></table></figure>
+<p>配置Hadoop相关文件</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">vim</span> slaves</div><div class="line"></div><div class="line">server2</div><div class="line">server1</div></pre></td></tr></table></figure>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">vim core-site.xml</div><div class="line"></div><div class="line"><span class="params">&lt;configuration&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line"><span class="params">&lt;name&gt;</span>fs.defaultFS<span class="params">&lt;/name&gt;</span></div><div class="line"><span class="params">&lt;value&gt;</span>hdfs:<span class="comment">//server1:9000&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line"><span class="params">&lt;name&gt;</span>hadoop.tmp.dir<span class="params">&lt;/name&gt;</span></div><div class="line"><span class="params">&lt;value&gt;</span>file:<span class="meta-keyword">/home/</span><span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;/configuration&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">vim hdfs-site.xml</div><div class="line"></div><div class="line"><span class="params">&lt;configuration&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line"><span class="params">&lt;name&gt;</span>dfs.namenode.name.dir<span class="params">&lt;/name&gt;</span></div><div class="line"><span class="params">&lt;value&gt;</span>file:<span class="meta-keyword">/home/</span>dfs/name<span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line"><span class="params">&lt;name&gt;</span>dfs.namenode.data.dir<span class="params">&lt;/name&gt;</span></div><div class="line"><span class="params">&lt;value&gt;</span>file:<span class="meta-keyword">/home/</span>dfs/data<span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line"><span class="params">&lt;name&gt;</span>dfs.replication<span class="params">&lt;/name&gt;</span></div><div class="line"><span class="params">&lt;value&gt;</span><span class="number">2</span><span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;/configuration&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">vim yarn-site.xml</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:8032<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.scheduler.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:8030<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.resource-tracker.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:8031<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.admin.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:8033<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.webapp.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:8088<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>mapreduce_shuffle<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services.mapreduce.shuffle.class<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.hadoop.mapred.ShuffleHandler<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">vim mapred-site.xml</div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.framework.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>yarn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.jobhistory.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:10020<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.jobhistory.webapp.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>server1:19888<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>修改环境变量 vim ~/.bashrc</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/<span class="class"><span class="keyword">lib</span>/<span class="title">native</span></span></div><div class="line">export HADOOP_OPTS=<span class="string">"-Djava.library.path=$HADOOP_HOME/lib"</span></div></pre></td></tr></table></figure>
+<p>把配置文件scp到slave上</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">scp -r hadoop<span class="number">-2.3</span><span class="number">.0</span> <span class="string">server2:</span><span class="regexp">/root/</span></div></pre></td></tr></table></figure>
+<p>启动Hadoop</p>
+<figure class="highlight dos"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">hdfs namenode -<span class="built_in">format</span></div><div class="line"><span class="built_in">start</span>-dfs.sh</div><div class="line"><span class="built_in">start</span>-yarn.sh</div></pre></td></tr></table></figure>
+<p>jps应该看到，如果没有这几项，查看对应log看错误原因</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="symbol">9379 </span>ResourceManager</div><div class="line"><span class="symbol">8904 </span>NameNode</div><div class="line"><span class="symbol">9183 </span>SecondaryNameNode</div><div class="line"><span class="symbol">28013 </span>Jps</div><div class="line"><span class="symbol">9021 </span>DataNode</div><div class="line"><span class="symbol">9478 </span>NodeManager</div></pre></td></tr></table></figure>
+<h4 id="配置Zookeeper"><a href="#配置Zookeeper" class="headerlink" title="配置Zookeeper"></a>配置Zookeeper</h4><p>下载</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">wget https:<span class="regexp">//</span>archive.apache.org<span class="regexp">/dist/</span>zookeeper<span class="regexp">/zookeeper-3.4.5/</span>zookeeper-<span class="number">3.4</span>.<span class="number">5</span>.tar.gz</div></pre></td></tr></table></figure>
+<p>环境变量</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">ZOOKEEPER_HOME=/root/zookeeper-3.4.5</div><div class="line">PATH=$PATH:$ZOOKEEPER_HOME/bin:$ZOOKEEPER_HOME/conf</div><div class="line"><span class="keyword">export</span> ZOOKEEPER_HOME PATH</div></pre></td></tr></table></figure>
+<p>配置</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">cp zoo_sample.cfg zoo.cfg</div><div class="line"></div><div class="line">vim zoo.cfg</div><div class="line"></div><div class="line">dataDir=<span class="regexp">/home/</span>zookeeper/data</div><div class="line">clientPort=<span class="number">2181</span></div><div class="line">server<span class="number">.1</span>=<span class="string">server1:</span><span class="number">2888</span>:<span class="number">3888</span></div><div class="line">server<span class="number">.2</span>=<span class="string">server2:</span><span class="number">2888</span>:<span class="number">3888</span></div><div class="line"></div><div class="line">echo <span class="string">"1"</span> &gt; <span class="regexp">/home/</span>zookeeper<span class="regexp">/data/</span>myid</div><div class="line">（另一台则是echo <span class="string">"2"</span> &gt; <span class="regexp">/home/</span>zookeeper<span class="regexp">/data/</span>myid）</div></pre></td></tr></table></figure>
+<p>把配置文件scp到slave上</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">scp -r zookeeper<span class="number">-3.4</span><span class="number">.5</span> <span class="string">server2:</span><span class="regexp">/root/</span></div></pre></td></tr></table></figure>
+<p>启动zookeeper (两台分别启动)</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">zkServer<span class="selector-class">.sh</span> start</div></pre></td></tr></table></figure>
+<h4 id="配置hbase"><a href="#配置hbase" class="headerlink" title="配置hbase"></a>配置hbase</h4><p>下载</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">wget https://archive.apache.org/dist/hbase/<span class="number">0.98</span><span class="meta">.16</span><span class="meta">.1</span>/hbase-<span class="number">0.98</span><span class="meta">.16</span><span class="meta">.1</span>-hadoop2-bin.tar.gz</div><div class="line">tar -zxvf hbase-<span class="number">0.98</span><span class="meta">.16</span><span class="meta">.1</span>-hadoop2-bin.tar.gz</div></pre></td></tr></table></figure>
+<p>环境变量</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">HBASE_HOME=/root/hbase-0.98.16.1-hadoop2</div><div class="line">PATH=$PATH:$HBASE_HOME/bin:$HBASE_HOME/conf</div><div class="line"><span class="keyword">export</span> HBASE_HOME PATH</div></pre></td></tr></table></figure>
+<p>修改conf/hbase-site.xml</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="params">&lt;configuration&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line">        <span class="params">&lt;name&gt;</span>hbase.rootdir<span class="params">&lt;/name&gt;</span></div><div class="line">        <span class="params">&lt;value&gt;</span>hdfs:<span class="comment">//server1:9000/hbase&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line">        <span class="params">&lt;name&gt;</span>hbase.cluster.distributed<span class="params">&lt;/name&gt;</span></div><div class="line">        <span class="params">&lt;value&gt;</span>true<span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line">        <span class="params">&lt;name&gt;</span>hbase.master<span class="params">&lt;/name&gt;</span></div><div class="line">        <span class="params">&lt;value&gt;</span>hdfs:<span class="comment">//server1:60000&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line">        <span class="params">&lt;name&gt;</span>hbase.zookeeper.quorum<span class="params">&lt;/name&gt;</span></div><div class="line">        <span class="params">&lt;value&gt;</span>server1,server2<span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;property&gt;</span></div><div class="line">		<span class="params">&lt;name&gt;</span>hbase.zookeeper.property.dataDir<span class="params">&lt;/name&gt;</span></div><div class="line">		<span class="params">&lt;value&gt;</span><span class="meta-keyword">/home/</span>zookeeper/data<span class="params">&lt;/value&gt;</span></div><div class="line"><span class="params">&lt;/property&gt;</span></div><div class="line"><span class="params">&lt;/configuration&gt;</span></div></pre></td></tr></table></figure>
+<p>修改conf/regionservers</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">server1</span></div><div class="line">server2</div></pre></td></tr></table></figure>
+<h5 id="scp到server2上"><a href="#scp到server2上" class="headerlink" title="scp到server2上"></a>scp到server2上</h5><figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">scp -r hbase<span class="number">-0.98</span><span class="number">.16</span><span class="number">.1</span>-hadoop2 <span class="string">server2:</span><span class="regexp">/root/</span></div></pre></td></tr></table></figure>
+<p>启动HBase</p>
+<figure class="highlight crmsh"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/<span class="literal">start</span>-hbase.sh</div></pre></td></tr></table></figure>
+<h3 id="配置完毕-amp-amp-测试"><a href="#配置完毕-amp-amp-测试" class="headerlink" title="配置完毕&amp;&amp;测试"></a>配置完毕&amp;&amp;测试</h3><figure class="highlight excel"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">bin/hbase shell</div><div class="line"></div><div class="line">hbase(main)<span class="symbol">:001</span><span class="symbol">:0</span>&gt; list</div><div class="line">test</div><div class="line"><span class="number">1</span> <span class="built_in">row</span>(s) in <span class="number">0.8560</span> seconds</div><div class="line"></div><div class="line">=&gt; [<span class="string">"test"</span>]</div><div class="line"></div><div class="line"></div><div class="line">hbase(main)<span class="symbol">:002</span><span class="symbol">:0</span>&gt; status</div><div class="line"><span class="number">2</span> servers, <span class="number">0</span> dead, <span class="number">1.5000</span> <span class="built_in">average</span> load</div></pre></td></tr></table></figure>
+<h2 id="HIVE"><a href="#HIVE" class="headerlink" title="HIVE"></a>HIVE</h2><figure class="highlight makefile"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">wget</div><div class="line">tar -xzvf</div><div class="line">HIVE_HOME=/root/apache-hive-1.2.1-bin</div><div class="line">PATH=$PATH:$HIVE_HOME/bin</div><div class="line"><span class="keyword">export</span> HIVE_HOME PATH</div><div class="line"><span class="keyword">export</span> HADOOP_USER_CLASSPATH_FIRST=true</div></pre></td></tr></table></figure>
+<p>替换Derby为MySQL<br>修改hive-site.xml</p>
+<p>如果要启动集群，scp到客户端一份，修改客户端hive-site.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span>  </div><div class="line">		<span class="tag">&lt;<span class="name">name</span>&gt;</span>hive.metastore.uris<span class="tag">&lt;/<span class="name">name</span>&gt;</span>  </div><div class="line">		<span class="tag">&lt;<span class="name">value</span>&gt;</span>thrift://hadoop-master:9083<span class="tag">&lt;/<span class="name">value</span>&gt;</span>  </div><div class="line">	<span class="tag">&lt;/<span class="name">property</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>主节点上执行<code>hive --service metastore &amp;</code></p>
+<p>此时客户端直接hive即可获得主节点上hive的metastore信息</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/hbase/" rel="tag"># hbase</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/zookeeper/" rel="tag"># zookeeper</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/08/oracle-11g-qa1/" rel="next" title="oracle-11g的一个坑">
+                <i class="fa fa-chevron-left"></i> oracle-11g的一个坑
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/13/something-with-bigdata/" rel="prev" title="一些关于大数据的概念">
+                一些关于大数据的概念 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/27/docker-hadoop-hbase/"
+           data-title="利用docker搭建hbase集群" data-url="http://co2y.github.io/2015/12/27/docker-hadoop-hbase/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Co2y" />
+          <p class="site-author-name" itemprop="name">Co2y</p>
+           
+              <p class="site-description motion-element" itemprop="description">think, record, do</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/co2y" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2408622401" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#环境"><span class="nav-number">1.</span> <span class="nav-text">环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体步骤"><span class="nav-number">2.</span> <span class="nav-text">具体步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#准备阶段"><span class="nav-number">2.1.</span> <span class="nav-text">准备阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#环境配置"><span class="nav-number">2.2.</span> <span class="nav-text">环境配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#配置Java环境"><span class="nav-number">2.2.1.</span> <span class="nav-text">配置Java环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置ssh"><span class="nav-number">2.2.2.</span> <span class="nav-text">配置ssh</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#配置ssh免密码登陆"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">配置ssh免密码登陆</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置-etc-hosts"><span class="nav-number">2.2.3.</span> <span class="nav-text">配置/etc/hosts</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置Hadoop"><span class="nav-number">2.2.4.</span> <span class="nav-text">配置Hadoop</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置Zookeeper"><span class="nav-number">2.2.5.</span> <span class="nav-text">配置Zookeeper</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置hbase"><span class="nav-number">2.2.6.</span> <span class="nav-text">配置hbase</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#scp到server2上"><span class="nav-number">2.2.6.1.</span> <span class="nav-text">scp到server2上</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置完毕-amp-amp-测试"><span class="nav-number">2.3.</span> <span class="nav-text">配置完毕&&测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HIVE"><span class="nav-number">3.</span> <span class="nav-text">HIVE</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Co2y</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"co2y"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+  
+
+
+  
+
+</body>
+</html>

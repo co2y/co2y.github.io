@@ -1,0 +1,816 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="phoenix," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Apache Phoenix 的Join和Filter机制介绍。">
+<meta name="keywords" content="phoenix">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Phoenix Join和Filter">
+<meta property="og:url" content="http://co2y.github.io/2016/09/17/join-and-filter-in-phoenix/index.html">
+<meta property="og:site_name" content="Co2y&#39;s Blog">
+<meta property="og:description" content="Apache Phoenix 的Join和Filter机制介绍。">
+<meta property="og:updated_time" content="2016-12-06T05:59:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Phoenix Join和Filter">
+<meta name="twitter:description" content="Apache Phoenix 的Join和Filter机制介绍。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://co2y.github.io/2016/09/17/join-and-filter-in-phoenix/"/>
+
+
+
+
+
+  <title> Phoenix Join和Filter | Co2y's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Co2y's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">solver</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2016/09/17/join-and-filter-in-phoenix/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Co2y">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Co2y's Blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Co2y's Blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Phoenix Join和Filter
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-17T10:13:33+08:00">
+                2016-09-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Phoenix/" itemprop="url" rel="index">
+                    <span itemprop="name">Phoenix</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/09/17/join-and-filter-in-phoenix/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/09/17/join-and-filter-in-phoenix/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Apache Phoenix 的Join和Filter机制介绍。</p>
+<a id="more"></a>
+<h1 id="Join"><a href="#Join" class="headerlink" title="Join"></a>Join</h1><p>Phoenix中有两种Join，Hash Join和Sort Merge Join。</p>
+<h2 id="原理（单机）"><a href="#原理（单机）" class="headerlink" title="原理（单机）"></a>原理（单机）</h2><h3 id="Hash-Join"><a href="#Hash-Join" class="headerlink" title="Hash Join"></a>Hash Join</h3><p>Hash Join只能用于相等连接，而Phoenix目前也只支持相等连接。Hash Join适合两个表的数据量差别较大的时候，即一个大表，一个小表。散列连接是CBO做大数据集连接时的常用方式，优化器使用两个表中较小的表（或数据源）利用连接键在内存中建立散列表，然后扫描较大的表并探测散列表，找出与散列表匹配的行。</p>
+<p>这种方式适用于较小的表完全可以放于内存中的情况，这样总成本就是访问两个表的成本之和。但是在表很大的情况下并不能完全放入内存，这时优化器会将它分割成若干不同的分区，不能放入内存的部分就把该分区写入磁盘的临时段，此时要有较大的临时段从而尽量提高I/O的性能。</p>
+<p>步骤：将两个表中较小的一个在内存中构造一个HASH表（对JOIN KEY），扫描另一个表，同样对JOIN KEY进行HASH后探测是否可以JOIN。适用于记录集比较大的情况。需要注意的是：如果HASH表太大，无法一次构造在内存中，则分成若干个partition，写入磁盘的temporary segment，则会多一个写的代价，会降低效率。</p>
+<h3 id="Sort-Merge-Join"><a href="#Sort-Merge-Join" class="headerlink" title="Sort Merge Join"></a>Sort Merge Join</h3><p>Merge Sort是分布式系统中最常用的排序方式。通常情况下散列连接的效果都比排序合并连接要好，然而如果行源已经被排过序，在执行排序合并连接时不需要再排序了，这时排序合并连接的性能会优于散列连接。</p>
+<p>Sort Merge join 用在没有索引，并且数据已经排序的情况。步骤：将两个表排序，然后将两个表合并。通常情况下，只有在以下情况发生时，才会使用此种JOIN方式：</p>
+<ol>
+<li>RBO模式</li>
+<li>不等价关联(&gt;,&lt;,&gt;=,&lt;=,&lt;&gt;)</li>
+<li>HASH_JOIN_ENABLED=false</li>
+<li>数据源已排序</li>
+</ol>
+<h3 id="Nested-Loop"><a href="#Nested-Loop" class="headerlink" title="Nested Loop"></a>Nested Loop</h3><p>这种方式Phoenix本身没有提到，但在Oracle中经常用到。对于被连接的数据子集较小的情况，嵌套循环连接是个较好的选择。在嵌套循环中，内表被外表驱动，外表返回的每一行都要在内表中检索找到与它匹配的行，因此整个查询返回的结果集不能太大（大于1万不适合），要把返回子集较小的表作为外表（CBO 默认外表是驱动表），而且在内表的连接字段上一定要有索引。</p>
+<p>Nested loop一般用在连接的表中有索引，并且索引选择性较好的时候。<br>步骤：确定一个驱动表(outer table)，另一个表为inner table，驱动表中的每一行与inner表中的相应记录JOIN。类似一个嵌套的循环。适用于驱动表的记录集比较小（&lt;10000）而且inner表需要有有效的访问方法（Index）。需要注意的是：JOIN的顺序很重要，驱动表的记录集一定要小，返回结果集的响应时间是最快的。</p>
+<h2 id="Phoenix（分布式）"><a href="#Phoenix（分布式）" class="headerlink" title="Phoenix（分布式）"></a>Phoenix（分布式）</h2><h3 id="Hash-Join-1"><a href="#Hash-Join-1" class="headerlink" title="Hash Join"></a>Hash Join</h3><p>Phoenix中的Hash Join最大的问题就是内存不够，它好像没有分区的做法。要求一个父亲是小表，可以全部装载到内存中，并组织成map这样的数据结构。比如a join b其中a是小表，那么每个instance都要有一份a的全量数据，b不要求是有序的，随机分配到每个instance上即可，但是a表要广播到每个Instance上。对于等值连接，b的每一行都可以在内存中查找具有相等key的全部a，做笛卡尔积即可。对于非等值连接，b的每一行和a的全量做笛卡尔积然后按照on条件过滤即可。</p>
+<p>在Phoenix中父表的顺序是这样确定的</p>
+<ol>
+<li><p>lhs INNER JOIN rhs</p>
+<ul>
+<li>rhs will be built as hash table in server cache.</li>
+</ul>
+</li>
+<li><p>lhs LEFT OUTER JOIN rhs</p>
+<ul>
+<li>rhs will be built as hash table in server cache.</li>
+</ul>
+</li>
+<li><p>lhs RIGHT OUTER JOIN rhs</p>
+<ul>
+<li>lhs will be built as hash table in server cache.</li>
+</ul>
+</li>
+</ol>
+<h3 id="Sort-Merge-Join-1"><a href="#Sort-Merge-Join-1" class="headerlink" title="Sort Merge Join"></a>Sort Merge Join</h3><p>merge join要求左右表都是有序表，每次在两边同时读相等的等值连接的key到内存中（其实在内存的只有一边就可以了）做笛卡尔积。比如 a join b on a.key = b.key。a.key的值是1,2,3 b.key的值是1,3,4，那么先a.key = 1和所有行和b.key = 1的所有行join，忽略掉a.key = 2，再读key = 3。这样就需要左父亲的DAG节点（Task）按照a.key shuffle sort，右父亲的DAG节点按照b.key shuffle-sort。</p>
+<p>易见这种算法理论上可以的无限的横向拓展，只要保证每个instance上的key都是有序的，且同一个key都在一个instance上。在Phoenix/HBase上利用MultipleTableInput，扫描A表然后用unique key输出并且和B表匹配。</p>
+<p>步骤：在各个RS上对应的region里按列排好序，然后做笛卡尔积，结果放到client端，之后的操作就在client端进行。例如</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">SORT-<span class="keyword">MERGE</span>-<span class="keyword">JOIN</span> (<span class="keyword">INNER</span>) <span class="keyword">TABLES</span>                                                     </div><div class="line">     <span class="keyword">CLIENT</span> <span class="number">1</span>-<span class="keyword">CHUNK</span> <span class="number">1</span> <span class="keyword">ROWS</span> <span class="number">203</span> <span class="keyword">BYTES</span> <span class="keyword">PARALLEL</span> <span class="number">1</span>-WAY POINT LOOKUP <span class="keyword">ON</span> <span class="number">1</span> <span class="keyword">KEY</span> <span class="keyword">OVER</span> XXX  </div><div class="line">        <span class="keyword">SERVER</span> SORTED <span class="keyword">BY</span> [X.COL2]                                                 </div><div class="line">    <span class="keyword">CLIENT</span> <span class="keyword">MERGE</span> <span class="keyword">SORT</span>                                                              </div><div class="line"><span class="keyword">AND</span> (<span class="keyword">SKIP</span> <span class="keyword">MERGE</span>)                                                                   </div><div class="line">    <span class="keyword">CLIENT</span> <span class="number">1</span>-<span class="keyword">CHUNK</span> <span class="number">0</span> <span class="keyword">ROWS</span> <span class="number">0</span> <span class="keyword">BYTES</span> <span class="keyword">PARALLEL</span> <span class="number">1</span>-WAY <span class="keyword">FULL</span> <span class="keyword">SCAN</span> <span class="keyword">OVER</span> YYY                </div><div class="line">        <span class="keyword">SERVER</span> FILTER <span class="keyword">BY</span> <span class="keyword">FIRST</span> <span class="keyword">KEY</span> <span class="keyword">ONLY</span>                                           </div><div class="line">        <span class="keyword">SERVER</span> SORTED <span class="keyword">BY</span> [Y.COL2]                                                  </div><div class="line">    <span class="keyword">CLIENT</span> <span class="keyword">MERGE</span> <span class="keyword">SORT</span>                                                              </div><div class="line"><span class="keyword">CLIENT</span> SORTED <span class="keyword">BY</span> [X.COL3]                                                          </div><div class="line"><span class="keyword">CLIENT</span> <span class="keyword">AGGREGATE</span> <span class="keyword">INTO</span> <span class="keyword">DISTINCT</span> <span class="keyword">ROWS</span> <span class="keyword">BY</span> [X.COL3]</div></pre></td></tr></table></figure>
+<h1 id="Filter"><a href="#Filter" class="headerlink" title="Filter"></a>Filter</h1><h2 id="Server-Filter"><a href="#Server-Filter" class="headerlink" title="Server Filter"></a>Server Filter</h2><p>所有where子句后面的应该都是server filter</p>
+<h2 id="Client-Filter"><a href="#Client-Filter" class="headerlink" title="Client Filter"></a>Client Filter</h2><p>只有sort-merge join这种client端操作的才会是Client Filter。 例如通过sort join把结果放到client了，之后的聚集或者where过滤就会在client上了。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/phoenix/" rel="tag"># phoenix</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/09/13/phoenix-sql-operator/" rel="next" title="Phoenix的一些操作记录">
+                <i class="fa fa-chevron-left"></i> Phoenix的一些操作记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/09/22/phoenix-executequery-readingnotes/" rel="prev" title="Phoenix SQL执行源码分析">
+                Phoenix SQL执行源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/09/17/join-and-filter-in-phoenix/"
+           data-title="Phoenix Join和Filter" data-url="http://co2y.github.io/2016/09/17/join-and-filter-in-phoenix/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Co2y" />
+          <p class="site-author-name" itemprop="name">Co2y</p>
+           
+              <p class="site-description motion-element" itemprop="description">think, record, do</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/co2y" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2408622401" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Join"><span class="nav-number">1.</span> <span class="nav-text">Join</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#原理（单机）"><span class="nav-number">1.1.</span> <span class="nav-text">原理（单机）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hash-Join"><span class="nav-number">1.1.1.</span> <span class="nav-text">Hash Join</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sort-Merge-Join"><span class="nav-number">1.1.2.</span> <span class="nav-text">Sort Merge Join</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nested-Loop"><span class="nav-number">1.1.3.</span> <span class="nav-text">Nested Loop</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Phoenix（分布式）"><span class="nav-number">1.2.</span> <span class="nav-text">Phoenix（分布式）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hash-Join-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">Hash Join</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sort-Merge-Join-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">Sort Merge Join</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Filter"><span class="nav-number">2.</span> <span class="nav-text">Filter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Server-Filter"><span class="nav-number">2.1.</span> <span class="nav-text">Server Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client-Filter"><span class="nav-number">2.2.</span> <span class="nav-text">Client Filter</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Co2y</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"co2y"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+  
+
+
+  
+
+</body>
+</html>

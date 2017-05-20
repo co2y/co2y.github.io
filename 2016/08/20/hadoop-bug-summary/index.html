@@ -1,0 +1,826 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hadoop,bug," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Hadoop家族使用过程中一些异常的处理记录，主要包括Hadoop（MR，YARN），HBase，Hive，Phoenix，CDH等。大部分异常都可以通过google搜到，为了避免重复搜索和确保解决方法可用，故作此记录。不断更新。">
+<meta name="keywords" content="hadoop,bug">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hadoop异常处理">
+<meta property="og:url" content="http://co2y.github.io/2016/08/20/hadoop-bug-summary/index.html">
+<meta property="og:site_name" content="Co2y&#39;s Blog">
+<meta property="og:description" content="Hadoop家族使用过程中一些异常的处理记录，主要包括Hadoop（MR，YARN），HBase，Hive，Phoenix，CDH等。大部分异常都可以通过google搜到，为了避免重复搜索和确保解决方法可用，故作此记录。不断更新。">
+<meta property="og:updated_time" content="2016-12-06T05:58:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hadoop异常处理">
+<meta name="twitter:description" content="Hadoop家族使用过程中一些异常的处理记录，主要包括Hadoop（MR，YARN），HBase，Hive，Phoenix，CDH等。大部分异常都可以通过google搜到，为了避免重复搜索和确保解决方法可用，故作此记录。不断更新。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://co2y.github.io/2016/08/20/hadoop-bug-summary/"/>
+
+
+
+
+
+  <title> Hadoop异常处理 | Co2y's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Co2y's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">solver</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2016/08/20/hadoop-bug-summary/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Co2y">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Co2y's Blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Co2y's Blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Hadoop异常处理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-08-20T13:51:08+08:00">
+                2016-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Hadoop/" itemprop="url" rel="index">
+                    <span itemprop="name">Hadoop</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/08/20/hadoop-bug-summary/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/08/20/hadoop-bug-summary/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Hadoop家族使用过程中一些异常的处理记录，主要包括Hadoop（MR，YARN），HBase，Hive，Phoenix，CDH等。大部分异常都可以通过google搜到，为了避免重复搜索和确保解决方法可用，故作此记录。不断更新。</p>
+<a id="more"></a>
+<h1 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h1><h2 id="MAPREDUCE-5831-Old-MR-client-is-not-compatible-with-new-MR-application"><a href="#MAPREDUCE-5831-Old-MR-client-is-not-compatible-with-new-MR-application" class="headerlink" title="MAPREDUCE-5831 Old MR client is not compatible with new MR application"></a><a href="https://issues.apache.org/jira/browse/MAPREDUCE-5831" target="_blank" rel="external">MAPREDUCE-5831</a> Old MR client is not compatible with new MR application</h2><figure class="highlight stylus"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Exception <span class="keyword">in</span> thread <span class="string">"main"</span> java<span class="selector-class">.lang</span><span class="selector-class">.IllegalArgumentException</span>: No enum constant org<span class="selector-class">.apache</span><span class="selector-class">.hadoop</span><span class="selector-class">.mapreduce</span><span class="selector-class">.JobCounter</span><span class="selector-class">.MB_MILLIS_MAPS</span></div><div class="line"> at java<span class="selector-class">.lang</span><span class="selector-class">.Enum</span><span class="selector-class">.valueOf</span>(Enum<span class="selector-class">.java</span>:<span class="number">236</span>)</div></pre></td></tr></table></figure>
+<p>在使用importtsv的时候遇到这个问题，由于HBase impottsv导入数据的时候，需要启动底层MapReduce Job，Job运行在YARN集群上。但是HBase-0.98.7中使用的YARN、MR的版本都是2.2.0。在MR 2.3+后LIB库有一些变动，例如 JobCounter.MB_MILLIS_REDUCES就是在2.3版本加入的。而HBase-0.98使用的YARN/MR版本没有这个变量，所以会抛出“No enum constant”异常。</p>
+<p>解决方法：升级HBase，HBase1.0之后的lib下是MR 2.3+，或者把Hadoop share里的jar包拷贝到HBase/lib下,需要注意的是除了MR和YARN的包之外还有HDFS和COMMON的，要拷贝全，不然会导致HBase无法启动。再或者使用HBase Java Client API进行导入，避免直接importtsv。</p>
+<h2 id="Hadoop集群机器名称要求"><a href="#Hadoop集群机器名称要求" class="headerlink" title="Hadoop集群机器名称要求"></a>Hadoop集群机器名称要求</h2><p>hadoop集群的hostname里面千万不要包括下划线,否则会报以下错误：</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">java<span class="selector-class">.lang</span><span class="selector-class">.IllegalArgumentException</span>: Does not contain <span class="selector-tag">a</span> vali</div><div class="line">d host:port authority:</div></pre></td></tr></table></figure>
+<h2 id="TEZ的一个BUG"><a href="#TEZ的一个BUG" class="headerlink" title="TEZ的一个BUG"></a>TEZ的一个BUG</h2><p>按照<a href="http://tez.apache.org/install.html" target="_blank" rel="external">官方教程</a>部署之后，tez可以和mapreduce共同使用，并且如果是在hive的cli中用的话更方便，只要set hive.execution.engine = tez即可，但是这次报错了。</p>
+<p>hive的cli中并没有太多信息，查看hive的日志<strong><em>/tmp/${USER}/hive.log</em></strong>也没有发现有用的信息，只是偶尔会出现retrying connect 10 times的错误，让我一直以为是通信的问题。</p>
+<p>但是发现集群中的机器并没有开iptables，google也没有得到有用的结果，只有一个人在stackoverflow上提出了相同的问题，他也认为是tez和resourcemanager的通信问题，它的解决方法是换了一个tez版本。于是我编译了从0.52到0.80的所有tez发行版本都没有用。</p>
+<p>之后继续看tez application master的日志发现是application master没有启动导致的通信失败，但是从中也没有看出是什么原因导致的application master启动失败，stacktrace中的异常信息也没什么用。<a href="https://cwiki.apache.org/confluence/display/TEZ/How+to+Diagnose+Tez+App" target="_blank" rel="external">官方的tez问题查找文档</a>也没有给出其它的解决方案。</p>
+<p>最后在从节点的nodemanager的日志信息中<strong><em>$HADOOPHOME/logs</em></strong>中发现是application master启动占用的virtual memory超出了限制，最坑的是这个oom的错误不是每次都报的。</p>
+<p>之后google tez的oom异常，找到了一些解决方法，大多是设置yarn和hive-tez的jvm参数，最后通过修改yarn-site.xml 解决了问题</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.vmem-check-enabled<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">value</span>&gt;</span>false<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure>
+<h2 id="hbase-region-server-exiting-address-already-in-use"><a href="#hbase-region-server-exiting-address-already-in-use" class="headerlink" title="hbase region server exiting address already in use"></a>hbase region server exiting address already in use</h2><ol>
+<li>先查看端口是否被占用，处理对应进程</li>
+<li>可能是时间不同步，用ntp可以解决</li>
+<li>如果并没有发现端口占用的情况，重启hbase集群可能可以解决</li>
+<li>zookeeper数据残留</li>
+</ol>
+<h2 id="phoenix-udf"><a href="#phoenix-udf" class="headerlink" title="phoenix udf"></a>phoenix udf</h2><p>phoenix udf需要更换包名才能覆盖掉原来的类，这是因为除了<code>hbase.dynamic.jars.dir</code>在HDFS上外，本地默认是<code>/tmp/hbase-{User}/local/jars</code>里面还有之前的jar包，需要手动删除掉才行。</p>
+<h3 id="Limitations"><a href="#Limitations" class="headerlink" title="Limitations"></a>Limitations</h3><ol>
+<li>The jar containing the UDFs must be manually added/deleted to/from HDFS. Adding new SQL statements for add/remove jars(PHOENIX-1890)</li>
+<li>Dynamic class loader copy the udf jars to {hbase.local.dir}/jars at the phoenix client/region server when the udf used in queries. The jars must be deleted manually once a function deleted.</li>
+<li>functional indexes need to manually be rebuilt if the function implementation changes(PHOENIX-1907)</li>
+<li>once loaded, a jar will not be unloaded, so you’ll need to put modified implementations into a different jar to prevent having to bounce your cluster(PHOENIX-1907)</li>
+<li>to list the functions you need to query SYSTEM.“FUNCTION” table(PHOENIX-1921))</li>
+</ol>
+<h2 id="hive-shell-启动时连接8020端口"><a href="#hive-shell-启动时连接8020端口" class="headerlink" title="hive shell 启动时连接8020端口"></a>hive shell 启动时连接8020端口</h2><p>hive会认为namenode在8020端口，也就是<code>core-site.xml</code>里fs.defaultFS的值默认的是8020端口，通常我们会改成9000端口，这时hive还是会连8020导致connection refused。 可以在<code>hive-site.xml</code>里再次填写如下配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure>
+<h2 id="tephra-guava-版本"><a href="#tephra-guava-版本" class="headerlink" title="tephra guava 版本"></a>tephra guava 版本</h2><p>安装tephra，根据官网配置之后，发现启动时报异常，某个类找不到。<br>解决方法：guava版本不匹配造成某个类的缺失。在phoenix目录下建一个lib目录 然后把guava-13.0.1放进去 这是根据tephra日志里面的classpath的顺序来决定的。另外通过查看tephra-env.sh可以得知，</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Add any extra classes to the classpath</span></div><div class="line">export EXTRA_CLASSPATH=<span class="regexp">/home/</span>experiment<span class="regexp">/phoenix-4.7.0-HBase-0.98-bin/</span>lib</div></pre></td></tr></table></figure>
+<h2 id="phoenix-无法创建事务类型表"><a href="#phoenix-无法创建事务类型表" class="headerlink" title="phoenix 无法创建事务类型表"></a>phoenix 无法创建事务类型表</h2><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="number">0</span>: <span class="keyword">jdbc:phoenix:slave206,slave207,slave208,sl&gt; </span>CREATE TABLE my_table (k <span class="keyword">BIGINT </span>PRIMARY KEY, v VARCHAR) TRANSACTIONAL=true<span class="comment">;</span></div><div class="line"><span class="symbol">Error:</span> ERROR <span class="number">1078</span> (<span class="number">44</span>A09): Cannot create a transactional table if transactions are <span class="keyword">disabled. </span>tableName=MY_TABLE (state=<span class="number">44</span>A09,code=<span class="number">1078</span>)</div><div class="line"><span class="keyword">java.sql.SQLException: </span>ERROR <span class="number">1078</span> (<span class="number">44</span>A09): Cannot create a transactional table if transactions are <span class="keyword">disabled. </span>tableName=MY_TABLE</div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.exception.SQLExceptionCode$Factory$1.newException(SQLExceptionCode.java:454)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.exception.SQLExceptionInfo.buildException(SQLExceptionInfo.java:145)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.schema.MetaDataClient.createTableInternal(MetaDataClient.java:1815)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.schema.MetaDataClient.createTable(MetaDataClient.java:922)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.compile.CreateTableCompiler$2.execute(CreateTableCompiler.java:194)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.jdbc.PhoenixStatement$2.call(PhoenixStatement.java:340)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.jdbc.PhoenixStatement$2.call(PhoenixStatement.java:328)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.call.CallRunner.run(CallRunner.java:53)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.jdbc.PhoenixStatement.executeMutation(PhoenixStatement.java:326)</span></div><div class="line">       	<span class="built_in">at</span> <span class="keyword">org.apache.phoenix.jdbc.PhoenixStatement.execute(PhoenixStatement.java:1388)</span></div><div class="line">       	<span class="built_in">at</span> sqlline.Commands.execute(Commands.<span class="keyword">java:822)</span></div><div class="line">       	<span class="built_in">at</span> sqlline.Commands.sql(Commands.<span class="keyword">java:732)</span></div><div class="line">       	<span class="built_in">at</span> sqlline.SqlLine.<span class="keyword">dispatch(SqlLine.java:807)</span></div><div class="line">       	<span class="built_in">at</span> sqlline.SqlLine.<span class="keyword">begin(SqlLine.java:681)</span></div><div class="line">       	<span class="built_in">at</span> sqlline.SqlLine.start(SqlLine.<span class="keyword">java:398)</span></div><div class="line">       	<span class="built_in">at</span> sqlline.SqlLine.main(SqlLine.<span class="keyword">java:292)</span></div></pre></td></tr></table></figure>
+<p>这里需要在<em>客户端</em>设置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">name</span>&gt;</span>phoenix.transactions.enabled<span class="tag">&lt;/<span class="name">name</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>也就是在phoenix/lib/下的hbase-site.xml里设置</p>
+<h2 id="接上-《phoenix无法创建事务类型表中》"><a href="#接上-《phoenix无法创建事务类型表中》" class="headerlink" title="接上 《phoenix无法创建事务类型表中》"></a>接上 《phoenix无法创建事务类型表中》</h2><p>上面提到需要在客户端设置<code>phoenix.transactions.enabled</code>，这也是直接用jdbc读写事务表报NPE的原因。</p>
+<h2 id="phoenix-注意单双引号"><a href="#phoenix-注意单双引号" class="headerlink" title="phoenix 注意单双引号"></a>phoenix 注意单双引号</h2><p>小写的表名，字段名都要加双引号。 做hbase映射时也要加双引号，并且映射不是秒建的。</p>
+<h2 id="hadoop-tmp-dir"><a href="#hadoop-tmp-dir" class="headerlink" title="hadoop.tmp.dir"></a>hadoop.tmp.dir</h2><p>出现</p>
+<figure class="highlight maxima"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Exception <span class="keyword">in</span> thread <span class="string">"main"</span> java.lang.IllegalArgumentException: Wrong FS: file:/home/hadoop/tmp/partitions_a5981b72-eaa7-<span class="number">4b05</span>-<span class="number">93b4</span>-dab30f681387, expected: hdfs://master:<span class="number">9000</span></div></pre></td></tr></table></figure>
+<p>这是我在用phoenix bulkload工具时遇到的错误，经过google发现不少同学也遇到了相同的错误，但是并没有找到解决方法。</p>
+<p>经过排查发现是因为hadoop.tmp.dir配置到了本地，出现此错误的core-site.xml里该配置项的值一般都加了file:/。这样会强制把临时目录设置为本地，而其实这个目录是在HDFS上的。</p>
+<p>修改此配置项，把前面的file:/去掉并在hdfs上找一个合适的目录即可解决此问题。</p>
+<h2 id="no-datanode-to-stop"><a href="#no-datanode-to-stop" class="headerlink" title="no datanode to stop"></a>no datanode to stop</h2><p>问题的原因是hadoop在stop的时候依据的是datanode上的mapred和dfs进程号。而默认的进程号保存在/tmp下，linux 默认会每隔一段时间（一般是一个月或者7天左右）去删除这个目录下的文件。因此删掉hadoop-hadoop-jobtracker.pid和hadoop-hadoop-namenode.pid两个文件后，namenode自然就找不到datanode上的这两个进程了。</p>
+<p>在配置文件hadoop_env.sh中配置export HADOOP_PID_DIR可以解决这个问题。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">kill $(jps <span class="params">| grep DataNode |</span> awk <span class="string">'&#123;print $1&#125;'</span>)</div></pre></td></tr></table></figure>
+<h2 id="hive-与-hbase-集成"><a href="#hive-与-hbase-集成" class="headerlink" title="hive 与 hbase 集成"></a>hive 与 hbase 集成</h2><p>在hive建立与hbase映射的表时，执行insert into / insert overwrite 时报错：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attribute">must specify tablename</span></div></pre></td></tr></table></figure>
+<p>经过google, hbase0.98+hive1.2.1不少同学遇到这个问题，需要在建表的时候多指定一个属性。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag"># hadoop</a>
+          
+            <a href="/tags/bug/" rel="tag"># bug</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/29/kafka-1/" rel="next" title="kafka相关操作记录">
+                <i class="fa fa-chevron-left"></i> kafka相关操作记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/09/01/hadoop-cluster-fsck-delete-story/" rel="prev" title="hadoop集群误操作经历">
+                hadoop集群误操作经历 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/08/20/hadoop-bug-summary/"
+           data-title="Hadoop异常处理" data-url="http://co2y.github.io/2016/08/20/hadoop-bug-summary/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Co2y" />
+          <p class="site-author-name" itemprop="name">Co2y</p>
+           
+              <p class="site-description motion-element" itemprop="description">think, record, do</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/co2y" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2408622401" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#目录"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MAPREDUCE-5831-Old-MR-client-is-not-compatible-with-new-MR-application"><span class="nav-number">1.1.</span> <span class="nav-text">MAPREDUCE-5831 Old MR client is not compatible with new MR application</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hadoop集群机器名称要求"><span class="nav-number">1.2.</span> <span class="nav-text">Hadoop集群机器名称要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TEZ的一个BUG"><span class="nav-number">1.3.</span> <span class="nav-text">TEZ的一个BUG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hbase-region-server-exiting-address-already-in-use"><span class="nav-number">1.4.</span> <span class="nav-text">hbase region server exiting address already in use</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#phoenix-udf"><span class="nav-number">1.5.</span> <span class="nav-text">phoenix udf</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Limitations"><span class="nav-number">1.5.1.</span> <span class="nav-text">Limitations</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive-shell-启动时连接8020端口"><span class="nav-number">1.6.</span> <span class="nav-text">hive shell 启动时连接8020端口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tephra-guava-版本"><span class="nav-number">1.7.</span> <span class="nav-text">tephra guava 版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#phoenix-无法创建事务类型表"><span class="nav-number">1.8.</span> <span class="nav-text">phoenix 无法创建事务类型表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接上-《phoenix无法创建事务类型表中》"><span class="nav-number">1.9.</span> <span class="nav-text">接上 《phoenix无法创建事务类型表中》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#phoenix-注意单双引号"><span class="nav-number">1.10.</span> <span class="nav-text">phoenix 注意单双引号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hadoop-tmp-dir"><span class="nav-number">1.11.</span> <span class="nav-text">hadoop.tmp.dir</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#no-datanode-to-stop"><span class="nav-number">1.12.</span> <span class="nav-text">no datanode to stop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hive-与-hbase-集成"><span class="nav-number">1.13.</span> <span class="nav-text">hive 与 hbase 集成</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Co2y</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"co2y"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+  
+
+
+  
+
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark,flink," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Spark和Flink是当今最主流的两个处理平台，早期Flink主要针对流处理，与之对应的是Spark Streaming，但随着两者的发展，许多地方逐渐统一。无论是Spark还是Flink都在解决MR针对迭代型数据处理需要反复存/读取硬盘的问题，并且在传统map，reduce算子的基础上扩充了许多算子。本文主要包括两个方面，Spark、Flink的介绍和比较。">
+<meta name="keywords" content="spark,flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark vs Flink">
+<meta property="og:url" content="http://co2y.github.io/2017/02/24/spark-vs-flink/index.html">
+<meta property="og:site_name" content="Co2y&#39;s Blog">
+<meta property="og:description" content="Spark和Flink是当今最主流的两个处理平台，早期Flink主要针对流处理，与之对应的是Spark Streaming，但随着两者的发展，许多地方逐渐统一。无论是Spark还是Flink都在解决MR针对迭代型数据处理需要反复存/读取硬盘的问题，并且在传统map，reduce算子的基础上扩充了许多算子。本文主要包括两个方面，Spark、Flink的介绍和比较。">
+<meta property="og:image" content="http://co2y.github.io/img/spark-deploy.png">
+<meta property="og:image" content="http://co2y.github.io/img/streaming-flow.png">
+<meta property="og:image" content="http://co2y.github.io/img/Flink.svg">
+<meta property="og:image" content="http://co2y.github.io/img/flink-event-time.png">
+<meta property="og:updated_time" content="2017-02-27T02:25:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark vs Flink">
+<meta name="twitter:description" content="Spark和Flink是当今最主流的两个处理平台，早期Flink主要针对流处理，与之对应的是Spark Streaming，但随着两者的发展，许多地方逐渐统一。无论是Spark还是Flink都在解决MR针对迭代型数据处理需要反复存/读取硬盘的问题，并且在传统map，reduce算子的基础上扩充了许多算子。本文主要包括两个方面，Spark、Flink的介绍和比较。">
+<meta name="twitter:image" content="http://co2y.github.io/img/spark-deploy.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://co2y.github.io/2017/02/24/spark-vs-flink/"/>
+
+
+
+
+
+  <title> Spark vs Flink | Co2y's Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Co2y's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">solver</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2017/02/24/spark-vs-flink/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Co2y">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Co2y's Blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Co2y's Blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark vs Flink
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-02-24T09:41:54+08:00">
+                2017-02-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Big-Data/" itemprop="url" rel="index">
+                    <span itemprop="name">Big Data</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/02/24/spark-vs-flink/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/02/24/spark-vs-flink/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Spark和Flink是当今最主流的两个处理平台，早期Flink主要针对流处理，与之对应的是Spark Streaming，但随着两者的发展，许多地方逐渐统一。无论是Spark还是Flink都在解决MR针对迭代型数据处理需要反复存/读取硬盘的问题，并且在传统map，reduce算子的基础上扩充了许多算子。本文主要包括两个方面，Spark、Flink的介绍和比较。</p>
+<a id="more"></a>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><h2 id="Spark"><a href="#Spark" class="headerlink" title="Spark"></a>Spark</h2><h3 id="Spark-Core"><a href="#Spark-Core" class="headerlink" title="Spark Core"></a>Spark Core</h3><h4 id="RDD"><a href="#RDD" class="headerlink" title="RDD"></a>RDD</h4><p>Spark Core是以RDD为基础的，RDD包括两类操作transformation和action。transformation返回RDD，延迟执行，直到触发action。通常每一个transformation() 方法返回（new）一个 RDD，但是某些transformation() 比较复杂，会包含多个子 transformation()。总结一下RDD有如下特性：</p>
+<ol>
+<li>它是不变的数据结构存储</li>
+<li>它是支持跨集群的分布式数据结构</li>
+<li>RDD包含多个partition，可以根据数据记录的key对结构进行分区</li>
+<li>提供了粗粒度的操作，且这些操作都支持分区</li>
+<li>它将数据存储在内存中，从而提供了低延迟性，RDD可以存放于不同的存储介质中，RDD在内存吃紧时，会转储到磁盘中</li>
+</ol>
+<h4 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h4><p>整个集群分为master节点和worker节点。一个运行在集群上的application包括driver和executors，driver（application.main()）是由yarn调度的可以在master上也可以在worker上。executor在worker节点上，是具体工作的进程，它由许多的tasks组成，每个task是一个线程，线程数等于partition的个数。</p>
+<p><img src="/img/spark-deploy.png" alt=""></p>
+<h4 id="job生成"><a href="#job生成" class="headerlink" title="job生成"></a>job生成</h4><p>每个application包括多个job，每个job对应rdd action，并且rdd包括多个stage，stage的划分是在逻辑执行图中由shuffle/result操作划分的，下面会介绍具体划分算法。整个Spark的运行过程由job =》逻辑执行图 =》DAG物理执行图 =》tasks。</p>
+<ol>
+<li>job会产生哪些RDD由transformation()语义决定。一些transformation()，比如cogroup()会被很多其他操作用到。</li>
+<li>RDD本身的依赖关系由transformation()生成的每一个RDD本身语义决定。如CoGroupedRDD依赖于所有参加cogroup()的RDDs。</li>
+<li>RDD中partition依赖关系分为NarrowDependency和ShuffleDependency。前者是完全依赖，后者是部分依赖。NarrowDependency里面又包含多种情况，只有前后两个RDD的partition个数以及partitioner都一样，才会出现NarrowDependency。Stage的划分算法就是从后往前推算，遇到ShuffleDependency就断开，遇到NarrowDependency就将其加入该stage。每个 stage里面task的数目由该stage最后一个RDD中的partition个数决定。</li>
+<li>从数据处理逻辑的角度来看，MapReduce 相当于 Spark 中的 map() + reduceByKey()，但严格来讲 MapReduce 中的 reduce() 要比 reduceByKey() 的功能强大些，还包括shuffle的部分。相比 MapReduce 固定的 shuffle-combine-merge-reduce 策略，Spark 更加灵活，会根据不同的 transformation() 的语义去设计不同的 shuffle-aggregate 策略，再加上不同的内存数据结构来混搭出合理的执行流程。</li>
+</ol>
+<h3 id="Streaming"><a href="#Streaming" class="headerlink" title="Streaming"></a>Streaming</h3><p>再说Spark Streaming，它对应的DStream是一段时间的RDD。Spark Streaming接收实时的输入数据流，然后将这些数据切分为批数据供Spark引擎处理，Spark引擎将数据生成最终的结果数据。DStream既可以利用从Kafka, Flume等源获取的输入数据流创建，也可以在其他DStream的基础上通过高阶函数获得。通常Spark streaming的事务是结合kafka来保证的。</p>
+<p><img src="/img/streaming-flow.png" alt=""></p>
+<h2 id="Flink"><a href="#Flink" class="headerlink" title="Flink"></a>Flink</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p><img src="/img/Flink.svg" alt=""></p>
+<p>Flink核心是流处理引擎，在此之上提供了两个核心API DataStream和DataSet以及之上的Table API和SQL，它的SQL也是和Calcite集成的。此外Flink还提供了ML机器学习库和图计算库，这些都和Spark非常相似。</p>
+<p>DataSet类似于Spark中的DataSet，DataStream类似于DStream，但是Spark的各个抽象是建立在RDD基础上的，DataSet是对RDD的封装，DataFrame是对RDD的封装，DStream内部也是RDD。而Flink强调万物皆流，它的DataSet和DataStream是在同一个底层抽象上两个不同的抽象，两者目前还无法统一，<a href="https://issues.apache.org/jira/browse/FLINK-2320" target="_blank" rel="external">FLINK-2320</a>正在解决这个问题。</p>
+<h3 id="时间窗口"><a href="#时间窗口" class="headerlink" title="时间窗口"></a>时间窗口</h3><p>对于流处理系统来说，流入的消息不存在上限，所以对于聚合或是连接等操作，流处理系统需要对流入的消息进行分段，然后基于每一段数据进行聚合或是连接。消息的分段即称为窗口，流处理系统支持的窗口有很多类型，最常见的就是时间窗口，基于时间间隔对消息进行分段处理。</p>
+<p>对于目前大部分流处理系统来说，时间窗口一般是根据Task所在节点的本地时钟进行切分，这种方式实现起来比较容易，不会产生阻塞。但是可能无法满足某些应用需求，比如：消息本身带有时间戳，用户希望按照消息本身的时间特性进行分段处理。</p>
+<p>由于不同节点的时钟可能不同，以及消息在流经各个节点的延迟不同，在某个节点属于同一个时间窗口处理的消息，流到下一个节点时可能被切分到不同的时间窗口中，从而产生不符合预期的结果。</p>
+<p>Flink支持3种类型的时间窗口，分别适用于用户对于时间窗口不同类型的要求：</p>
+<h4 id="Operator-Time"><a href="#Operator-Time" class="headerlink" title="Operator Time"></a>Operator Time</h4><p>根据Task所在节点的本地时钟来切分的时间窗口。</p>
+<h4 id="Event-Time"><a href="#Event-Time" class="headerlink" title="Event Time"></a>Event Time</h4><p>消息自带时间戳，根据消息的时间戳进行处理，确保时间戳在同一个时间窗口的所有消息一定会被正确处理。由于消息可能乱序流入Task，所以Task需要缓存当前时间窗口消息处理的状态，直到确认属于该时间窗口的所有消息都被处理，才可以释放，如果乱序的消息延迟很高会影响分布式系统的吞吐量和延迟。 Flink借鉴了Google的MillWheel项目，通过WaterMark来支持基于Event Time的时间窗口。</p>
+<p>当操作符通过基于Event Time的时间窗口来处理数据时，它必须在确定所有属于该时间窗口的消息全部流入此操作符后才能开始数据处理。但是由于消息可能是乱序的，所以操作符无法直接确认何时所有属于该时间窗口的消息全部流入此操作符。WaterMark包含一个时间戳，Flink使用WaterMark标记所有小于该时间戳的消息都已流入，Flink的数据源在确认所有小于某个时间戳的消息都已输出到Flink流处理系统后，会生成一个包含该时间戳的WaterMark，插入到消息流中输出到Flink流处理系统中，Flink操作符按照时间窗口缓存所有流入的消息，当操作符处理到WaterMark时，它对所有小于该WaterMark时间戳的时间窗口数据进行处理并发送到下一个操作符节点，然后也将WaterMark发送到下一个操作符节点。</p>
+<p>为了保证能够处理所有属于某个时间窗口的消息，操作符必须等到大于这个时间窗口的WaterMark之后才能开始对该时间窗口的消息进行处理，相对于基于Operator Time的时间窗口，Flink需要占用更多内存，且会直接影响消息处理的延迟时间。对此，一个可能的优化措施是，对于聚合类的操作符，可以提前对部分消息进行聚合操作，当有属于该时间窗口的新消息流入时，基于之前的部分聚合结果继续计算，这样的话，只需缓存中间计算结果即可，无需缓存该时间窗口的所有消息。</p>
+<p>对于基于Event Time时间窗口的操作符来说，流入WaterMark的时间戳与当前节点的时钟一致是最简单理想的状况，但是在实际环境中是不可能的，由于消息的乱序以及前面节点处理效率的不同，总是会有某些消息流入时间大于其本身的时间戳，真实WaterMark时间戳与理想情况下WaterMark时间戳的差别称为Time Skew，如图所示。 </p>
+<p><img src="/img/flink-event-time.png" alt=""></p>
+<p>Time Skew决定了该WaterMark与上一个WaterMark之间的时间窗口所有数据需要缓存的时间，Time Skew时间越长，该时间窗口数据的延迟越长，占用内存的时间也越长，同时会对流处理系统的吞吐量产生负面影响。</p>
+<h4 id="Ingress-Time"><a href="#Ingress-Time" class="headerlink" title="Ingress Time"></a>Ingress Time</h4><p>有时消息本身并不带有时间戳信息，但用户依然希望按照消息而不是节点时钟划分时间窗口，例如避免上面提到的第二个问题，此时可以在消息源流入Flink流处理系统时自动生成增量的时间戳赋予消息，之后处理的流程与Event Time相同。Ingress Time可以看成是Event Time的一个特例，由于其在消息源处时间戳一定是有序的，所以在流处理系统中，相对于Event Time，其乱序的消息延迟不会很高，因此对Flink分布式系统的吞吐量和延迟的影响也会更小。</p>
+<h3 id="多流合并"><a href="#多流合并" class="headerlink" title="多流合并"></a>多流合并</h3><p>一个kafka的partition就是一个流，一个kafka topic的多个partition就是多个独立的流（offset彼此独立增长）。多个kafka topic显然是多个独立的流。流式统计经常需要把多个流合并统计到一起。这里会有两个问题，一个是不同流之间通常是无序的，如何保证一致性，这可以通过时间窗口等待来解决，但是如果不同流速度差异很大，因为内存是有限的，不能一直等待，这时就需要背压机制。</p>
+<h4 id="背压"><a href="#背压" class="headerlink" title="背压"></a>背压</h4><p>像Flink这样的流处理系统需要能够优雅地应对背压问题。背压通常产生于这样一种场景：当一个系统接收数据的速率高于它在一个瞬时脉冲内能处理的数据。许多日常问题都会导致背压。例如，垃圾回收卡顿可能会导致流入的数据快速堆积，或者一个数据源可能生产数据的速度过快。背压如果不能得到正确地处理，可能会导致资源被耗尽或者甚至出现更糟的情况导致数据丢失。</p>
+<p>直观的做法是上游产生的数据放到一个缓冲区中，并且做持久化，例如数据源本身是kafka。所以Flink中的背压是在传输过程中实现的，也就是整个pipeline的速率是可控的，对source进行限流来适配整个pipeline中最慢的组件。Flink运行时的构造部件是operators以及streams。每一个operator消费一个中间/过渡状态的流，对它们进行转换，然后生产一个新的流。Flink使用有效的分布式阻塞队列来作为有界的缓冲区，也就是每一个task都有一个缓冲区，从而使得task生产数据的速度跟消费的速度对等。</p>
+<h1 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h1><p>这里比较的主要是两者在流处理方面的差异。</p>
+<h2 id="执行引擎"><a href="#执行引擎" class="headerlink" title="执行引擎"></a>执行引擎</h2><p>在执行引擎这一层，流处理系统与批处理系统最大不同在于节点间的数据传输方式。对于一个流处理系统，其节点间数据传输的标准模型是：当一条数据被处理完成后，序列化到缓存中，然后立刻通过网络传输到下一个节点，由下一个节点继续处理。而对于一个批处理系统，其节点间数据传输的标准模型是：当一条数据被处理完成后，序列化到缓存中，并不会立刻通过网络传输到下一个节点，当缓存写满，就持久化到本地硬盘上，当所有数据都被处理完成后，才开始将处理后的数据通过网络传输到下一个节点。这两种数据传输模式是两个极端，对应的是流处理系统对低延迟的要求和批处理系统对高吞吐量的要求。</p>
+<p>与其它流相比，Spark流处理是基于一个微批次来处理数据流的而非每一个事件。Flink的执行引擎采用了一种十分灵活的方式，同时支持了这两种数据传输模型。Flink以固定的缓存块为单位进行网络数据传输，用户可以通过缓存块超时值指定缓存块的传输时机。如果缓存块的超时值为0，则Flink的数据传输方式类似上文所提到流处理系统的标准模型，此时系统可以获得最低的处理延迟。如果缓存块的超时值为无限大，则Flink的数据传输方式类似上文所提到批处理系统的标准模型，此时系统可以获得最高的吞吐量。同时缓存块的超时值也可以设置为0到无限大之间的任意值。缓存块的超时阈值越小，则Flink流处理执行引擎的数据处理延迟越低，但吞吐量也会降低，反之亦然。通过调整缓存块的超时阈值，用户可根据需求灵活地权衡系统延迟和吞吐量。当然这一方面Spark也在进步，它也在把批处理与实时处理都作为计算引擎的地位。</p>
+<h2 id="容错"><a href="#容错" class="headerlink" title="容错"></a>容错</h2><p>Flink和Spark容错实现也不一样。Spark选择记录更新的方式。但是，如果更新粒度太细太多，那么记录更新成本也不低。因此，RDD只支持粗粒度转换，即只记录单个块上执行的单个操作，然后将创建RDD的一系列变换序列。每个RDD都包含了他是如何由其他RDD变换过来的以及如何重建某一块数据的信息，称为Lineage。Lineage本质上很类似于数据库中的重做日志（Redo Log），只不过这个重做日志粒度很大，是对全局数据做同样的重做进而恢复数据。Lineage分为宽依赖和窄依赖，这其实对应的是stage的划分，窄依赖是指父RDD的每一个分区最多被一个子RDD的分区所用，而宽依赖是指子RDD的分区依赖于父RDD的多个分区或所有分区。所以窄依赖可以在某个计算节点上直接通过计算父RDD的某块数据计算得到子RDD对应的某块数据；宽依赖则要等到父RDD所有数据都计算完成之后，并且父RDD的计算结果进行hash并传到对应节点上之后才能计算子RDD。数据丢失时，对于窄依赖只需要重新计算丢失的那一块数据来恢复；对于宽依赖则要将祖先RDD中的所有数据块全部重新计算来恢复。有宽依赖的时候，需要在适当的时机设置数据检查点。</p>
+<p>而Flink参考Chandy和Lamport算法实现了一致性快照。它按照用户自定义的分布式快照间隔时间，Flink会定时在所有数据源中插入一种特殊的快照标记消息，这些快照标记消息和其他消息一样在DAG中流动，但是不会被用户定义的业务逻辑所处理，每一个快照标记消息都将其所在的数据流分成两部分：本次快照数据和下次快照数据。快照标记消息沿着DAG流经各个操作符，当操作符处理到快照标记消息时，会对自己的状态进行快照，并存储起来。当一个操作符有多个输入的时候，Flink会将先抵达的快照标记消息及其之后的消息缓存起来，当所有的输入中对应该次快照的快照标记消息全部抵达后，操作符对自己的状态快照并存储，之后处理所有快照标记消息之后的已缓存消息。操作符对自己的状态快照并存储可以是异步与增量的操作，并不需要阻塞消息的处理。当所有的Data Sink（终点操作符）都收到快照标记信息并对自己的状态快照和存储后，整个分布式快照就完成了，同时通知数据源释放该快照标记消息之前的所有消息。若之后发生节点崩溃等异常情况时，只需要恢复之前存储的分布式快照状态，并从数据源重发该快照以后的消息就可以了。</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>此外，以前说的两者差异还包括：memory management，pipelined execution等，这些两者现在都做到了off-heap的内存管理，把DataSet作为logical plan能够在运行时进行优化。Spark引入tungsten重写了代码生成帮助处理CPU瓶颈。</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ol>
+<li><a href="https://github.com/JerryLead/SparkInternals/" target="_blank" rel="external">https://github.com/JerryLead/SparkInternals/</a></li>
+<li><a href="http://geek.csdn.net/news/detail/56272" target="_blank" rel="external">http://geek.csdn.net/news/detail/56272</a></li>
+<li><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.2/concepts/programming-model.html#levels-of-abstraction" target="_blank" rel="external">https://ci.apache.org/projects/flink/flink-docs-release-1.2/concepts/programming-model.html#levels-of-abstraction</a></li>
+</ol>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spark/" rel="tag"># spark</a>
+          
+            <a href="/tags/flink/" rel="tag"># flink</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/15/algorithm-practice-summary/" rel="next" title="算法&数据结构小结">
+                <i class="fa fa-chevron-left"></i> 算法&数据结构小结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/05/hihocoder-offer-8/" rel="prev" title="hihocoder-Offer收割编程练习赛8">
+                hihocoder-Offer收割编程练习赛8 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/02/24/spark-vs-flink/"
+           data-title="Spark vs Flink" data-url="http://co2y.github.io/2017/02/24/spark-vs-flink/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Co2y" />
+          <p class="site-author-name" itemprop="name">Co2y</p>
+           
+              <p class="site-description motion-element" itemprop="description">think, record, do</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">47</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/co2y" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/2408622401" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark"><span class="nav-number">1.1.</span> <span class="nav-text">Spark</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark-Core"><span class="nav-number">1.1.1.</span> <span class="nav-text">Spark Core</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RDD"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">RDD</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#架构"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#job生成"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">job生成</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Streaming"><span class="nav-number">1.1.2.</span> <span class="nav-text">Streaming</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flink"><span class="nav-number">1.2.</span> <span class="nav-text">Flink</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本概念"><span class="nav-number">1.2.1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#时间窗口"><span class="nav-number">1.2.2.</span> <span class="nav-text">时间窗口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Operator-Time"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Operator Time</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Event-Time"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">Event Time</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ingress-Time"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">Ingress Time</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多流合并"><span class="nav-number">1.2.3.</span> <span class="nav-text">多流合并</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#背压"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">背压</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#比较"><span class="nav-number">2.</span> <span class="nav-text">比较</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#执行引擎"><span class="nav-number">2.1.</span> <span class="nav-text">执行引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容错"><span class="nav-number">2.2.</span> <span class="nav-text">容错</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其它"><span class="nav-number">2.3.</span> <span class="nav-text">其它</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">3.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Co2y</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"co2y"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+  
+
+
+  
+
+</body>
+</html>
