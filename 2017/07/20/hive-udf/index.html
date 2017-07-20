@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="hbase,phoenix,udf," />
+  <meta name="keywords" content="hive,udf," />
 
 
 
@@ -87,17 +87,17 @@
 
 
 
-<meta name="description" content="github streak竟然断了。。不可冷漠">
-<meta name="keywords" content="hbase,phoenix,udf">
+<meta name="description" content="Hive UDF的开发，实习的第一个任务，以前也写过，记录点东西。">
+<meta name="keywords" content="hive,udf">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Phoenix和HBase关于null的区别">
-<meta property="og:url" content="http://co2y.github.io/2016/05/19/difference-between-hbase-and-phoenix-about-null/index.html">
+<meta property="og:title" content="Hive UDF开发的一些坑">
+<meta property="og:url" content="http://co2y.github.io/2017/07/20/hive-udf/index.html">
 <meta property="og:site_name" content="Co2y&#39;s Blog">
-<meta property="og:description" content="github streak竟然断了。。不可冷漠">
-<meta property="og:updated_time" content="2016-12-06T06:02:56.000Z">
+<meta property="og:description" content="Hive UDF的开发，实习的第一个任务，以前也写过，记录点东西。">
+<meta property="og:updated_time" content="2017-07-20T12:25:41.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Phoenix和HBase关于null的区别">
-<meta name="twitter:description" content="github streak竟然断了。。不可冷漠">
+<meta name="twitter:title" content="Hive UDF开发的一些坑">
+<meta name="twitter:description" content="Hive UDF的开发，实习的第一个任务，以前也写过，记录点东西。">
 
 
 
@@ -125,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="http://co2y.github.io/2016/05/19/difference-between-hbase-and-phoenix-about-null/"/>
+  <link rel="canonical" href="http://co2y.github.io/2017/07/20/hive-udf/"/>
 
 
 
 
 
-  <title> Phoenix和HBase关于null的区别 | Co2y's Blog </title>
+  <title> Hive UDF开发的一些坑 | Co2y's Blog </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -270,7 +270,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2016/05/19/difference-between-hbase-and-phoenix-about-null/">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2017/07/20/hive-udf/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Co2y">
@@ -294,7 +294,7 @@
             
             
               
-                Phoenix和HBase关于null的区别
+                Hive UDF开发的一些坑
               
             
           </h1>
@@ -309,8 +309,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-05-19T18:45:05+08:00">
-                2016-05-19
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-20T17:23:38+08:00">
+                2017-07-20
               </time>
             
 
@@ -332,8 +332,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Phoenix/" itemprop="url" rel="index">
-                    <span itemprop="name">Phoenix</span>
+                  <a href="/categories/Hive/" itemprop="url" rel="index">
+                    <span itemprop="name">Hive</span>
                   </a>
                 </span>
 
@@ -350,8 +350,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2016/05/19/difference-between-hbase-and-phoenix-about-null/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/19/difference-between-hbase-and-phoenix-about-null/" itemprop="commentCount"></span>
+                <a href="/2017/07/20/hive-udf/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/07/20/hive-udf/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -377,13 +377,38 @@
       
 
       
-        <h2 id="github-streak竟然断了。。"><a href="#github-streak竟然断了。。" class="headerlink" title="github streak竟然断了。。"></a><em>github streak竟然断了。。</em></h2><p><em>不可冷漠</em></p>
-<a id="more"></a>
-<p>下面记录点知识</p>
-<h2 id="phoenix-和-hbase-关于-null-的区别"><a href="#phoenix-和-hbase-关于-null-的区别" class="headerlink" title="phoenix 和 hbase 关于 null 的区别"></a>phoenix 和 hbase 关于 null 的区别</h2><p>首先，HBase不像关系型表有固定的schema，HBase在建表时只需要初始化CF，至于这个CF中有哪些column是可以变的，并且HBase是不存储null的，当某一个cf:cq对应的值为null时，这个cq也就没有意义了，因此不存储，不占用空间，在HBase shell中查看也是看不到的。</p>
-<p>但是Phoenix为了保证与RDBMS使用上的相似性，当把一张表从HBase映射到Phoenix中时，需要先在Phoenix中create table，这时表的schema是固定的，你得写全全部的字段名。这就造成了Phoenix和HBase的差异。</p>
-<p>于是当从text通过importtsv导入某张表到HBase中时，开始时有些字段可以为空，并且在HBase中这些字段也会存在，只不过对应的value=后面是空的。当在Phoenix中人为执行一条upsert将某条记录的某个字段改成null时，这时这个字段在HBase中就消失了，但是在Phoenix中仍然可以看到。这就会带来错误。这也是为什么Phoenix在每个CF中会加一个_0来保证这个CF不会消失。</p>
-<p>比如在Phoenix执行SQL时，where子句后面跟上某个字段的过滤条件，直觉上可能觉得无非是把这个字段当做null来处理，然而这个字段为空导致这个字段在HBase是不存在的，所以无论如何也查不到，即使做了对null的处理。</p>
+        <p>Hive UDF的开发，实习的第一个任务，以前也写过，记录点东西。<br><a id="more"></a></p>
+<h3 id="UDF"><a href="#UDF" class="headerlink" title="UDF"></a>UDF</h3><p>Hive UDF开发可以继承UDF或者GenericUDF。总结以下几点：</p>
+<ul>
+<li>UDF比较简单，只需要实现一个<code>evaluate</code>方法，Hive会根据实际UDF传入的参数来调用对应的<code>evaluate</code>方法，这也正是我们在源码中看到有些UDF的<code>evaluate</code>方法重载了很多次来支持不同类型的输入。</li>
+<li>UDF的返回值一定要是<code>writable</code>的，比如<code>Text</code>，<code>IntegerWritable</code>等。</li>
+<li>GenericUDF需要实现三个方法，<code>initialize</code>、<code>evaluate</code>和<code>getDisplayString</code>。<code>evaluate</code>方法和UDF的<code>evaluate</code>是一个含义，对每行的数据做处理。<code>getDisplayString</code>一定不能返回null。<code>initialize</code>只在每次调用开始时执行一次，主要用于获得参数类型，检查参数等。从源码的内置GenericUDF中可以看出，主要是要掌握对<code>ObjectInspector</code>及其相关的几个类。下面简单介绍下常用的方法，以及参数从Hive类型到Java标准类型的转换。</li>
+</ul>
+<h4 id="ObjectInspector"><a href="#ObjectInspector" class="headerlink" title="ObjectInspector"></a>ObjectInspector</h4><ol>
+<li>获取参数类型  <code>ObjectInspector.getCategory()</code>;</li>
+<li>获取converter  <code>ObjectInspectorConverters.getConverter(arguments, PrimitiveObjectInspectorFactory.writableXXXObjectInspector);</code></li>
+<li>类型转换  <code>converter.convert(argument.get())</code></li>
+<li>基本类型的<code>ObjectInspector</code>的操作，强制转换即可  <code>((PrimitiveObjectInspector) argument).getPrimitiveCategory()</code></li>
+<li>相关工厂类和工具类的使用，主要是<code>ObjectInspectorFactory</code>和<code>PrimitiveObjectInspectorUtils</code>，例如类型转换也可以用<code>PrimitiveObjectInspectorUtils.getInt(object, inputOI)</code></li>
+</ol>
+<h3 id="UDTF"><a href="#UDTF" class="headerlink" title="UDTF"></a>UDTF</h3><p>UDTF是一对多的生成函数，用的不多，写起来也很简单。继承GenericUDTF包括以下几个函数：<code>initialize</code>、<code>process</code>、<code>close</code>、<code>toString</code>，基本上都是字面意思。处理逻辑主要在<code>process</code>，和GenericUDF一样，输入是一行，但是UDTF可以通过循环<code>forward</code>来生成多行数据，<code>forward</code>的是一个<code>Object[]</code>，里面是<code>writable</code>的元素。</p>
+<h3 id="UDAF"><a href="#UDAF" class="headerlink" title="UDAF"></a>UDAF</h3><p>UDAF是最复杂的，UDAF通常包括两个静态内部类，外部类继承自<code>AbstractGenericUDAFResolver</code>只需要实现一个方法<code>getEvaluator</code>，<code>getEvaluator</code>返回一个<code>GenericUDAFEvaluator</code>，也就是第一个内部类需要继承实现的<code>GenericUDAFEvaluator</code>，包括<code>init</code>、<code>getNewAggregationBuffer</code>、<code>reset</code>、<code>iterate</code>、<code>terminatePartial</code>、<code>merge</code>、<code>terminate</code>，以及另一个内部类<code>AggregationBuffer</code>，也就是<code>getNewAggregationBuffer</code>返回的对象。这些方法主要对应MapReduce的不同阶段，这里不详细介绍，主要记录遇到的坑，包括四点</p>
+<ol>
+<li><code>AggregationBuffer</code>的初始化顺序，或者说调用顺序不直观，有的初始化工作需要在运行时做。</li>
+<li><code>outputOI = ObjectInspectorUtils.getStandardObjectInspector(inputOI)</code>，这条语句可以传入第二个参数JAVA等，默认是由Hive来判断，这里一定要注意前后一致，不然很容易出现类似与<code>Int</code>和<code>IntegerWritable</code>之间转换的问题。</li>
+<li><code>ObjectInspectorUtils.compare(maxagg.o, outputOI, object, inputOI);</code> 其中outputOI通常是由inputOI得到的，见第2点，具体可参考内置的Max函数。</li>
+<li>struct的结果可以这样构造<code>ObjectInspectorFactory.getStandardStructObjectInspector(fName, fieldOIs)</code>，调用时可以转换成<code>LazyBinaryStruct</code>来操作， <code>objects = ((LazyBinaryStruct) partial).getFieldsAsList();</code></li>
+</ol>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p>这几天开发了几十个UDF大部分都是与时间处理有关的，这里记录下Hive和Java关于时间处理的一些问题。</p>
+<ol>
+<li>Hive在许多新版本，例如1.2、1.3、2.0中加入了一些新的UDF是老版本所没有的，可以迁移过来，但是也要迁移相关的一些类，有的可能需要新版本的GenericUDF</li>
+<li>日期处理通常是由一个统一的模块来解析不同含义变量代表的时间，例如<code>String</code>、<code>Date</code>、<code>Timestamp</code>甚至也可以用int来表示时间。通常用SimpleDateFormat来parse这些参数，需要注意format的格式，可以通过调整顺序等方式，达到最优的parse效果。</li>
+<li>Hive里不像MySQL区分<code>Date</code>，<code>DateTime</code>，以及<code>Time</code>。需要自行处理。</li>
+<li>Java8对时间有了很好的支持，包括1.8以前支持的Date只能精确到毫秒。Java8的time包可以更加精确，且对Time，Date等做了区分。</li>
+<li><code>Joda</code>和<code>310</code>这些第三方库对时间处理支持很好，提供了许多实用的函数。比<code>Date</code>和<code>Calendar</code>好用。</li>
+<li>滑动窗口取最值问题：双端队列维护递增序列。</li>
+<li>UDF的泛型要么是参数重载，要么是<code>switch-case</code>来确定参数的<code>ObjectInspector</code>得到的类型。</li>
+</ol>
 
       
     </div>
@@ -407,9 +432,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/hbase/" rel="tag"># hbase</a>
-          
-            <a href="/tags/phoenix/" rel="tag"># phoenix</a>
+            <a href="/tags/hive/" rel="tag"># hive</a>
           
             <a href="/tags/udf/" rel="tag"># udf</a>
           
@@ -424,8 +447,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/05/12/a-story-about-bigdata-in-a-company/" rel="next" title="某公司大数据平台故事">
-                <i class="fa fa-chevron-left"></i> 某公司大数据平台故事
+              <a href="/2017/05/20/2017-04-05-summary/" rel="next" title="实习小结">
+                <i class="fa fa-chevron-left"></i> 实习小结
               </a>
             
           </div>
@@ -433,10 +456,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2016/06/14/may-to-june-summary/" rel="prev" title="2016-05~2016-06小结">
-                2016-05~2016-06小结 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -462,8 +481,8 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2016/05/19/difference-between-hbase-and-phoenix-about-null/"
-           data-title="Phoenix和HBase关于null的区别" data-url="http://co2y.github.io/2016/05/19/difference-between-hbase-and-phoenix-about-null/">
+      <div class="ds-thread" data-thread-key="2017/07/20/hive-udf/"
+           data-title="Hive UDF开发的一些坑" data-url="http://co2y.github.io/2017/07/20/hive-udf/">
       </div>
     
   </div>
@@ -585,7 +604,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#github-streak竟然断了。。"><span class="nav-number">1.</span> <span class="nav-text">github streak竟然断了。。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#phoenix-和-hbase-关于-null-的区别"><span class="nav-number">2.</span> <span class="nav-text">phoenix 和 hbase 关于 null 的区别</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#UDF"><span class="nav-number">1.</span> <span class="nav-text">UDF</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ObjectInspector"><span class="nav-number">1.1.</span> <span class="nav-text">ObjectInspector</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UDTF"><span class="nav-number">2.</span> <span class="nav-text">UDTF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UDAF"><span class="nav-number">3.</span> <span class="nav-text">UDAF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他"><span class="nav-number">4.</span> <span class="nav-text">其他</span></a></li></ol></div>
             
 
           </div>
