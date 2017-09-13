@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="bug,oracle," />
+  <meta name="keywords" content="algorithm," />
 
 
 
@@ -87,17 +87,17 @@
 
 
 
-<meta name="description" content="Q:oracle 11g xe, ojdbc6, The Network Adapter could not establish the connection A:Change the JDBC connection driver class inyour application server from “oracle.jdbc.driver.OracleDriver” to “oracle.jd">
-<meta name="keywords" content="bug,oracle">
+<meta name="description" content="这次题出的比实习招聘要好，虽然不怎么会。。笔试后感谢大佬给我讲题，在此记录下这几题，题目应该不对，题意是对的。">
+<meta name="keywords" content="algorithm">
 <meta property="og:type" content="article">
-<meta property="og:title" content="oracle-11g的一个坑">
-<meta property="og:url" content="http://co2y.github.io/2015/12/08/oracle-11g-qa1/index.html">
+<meta property="og:title" content="腾讯校招软件开发编程题writeup">
+<meta property="og:url" content="http://co2y.github.io/2017/09/13/tecent-campus-recruiting-writeup/index.html">
 <meta property="og:site_name" content="Co2y&#39;s Blog">
-<meta property="og:description" content="Q:oracle 11g xe, ojdbc6, The Network Adapter could not establish the connection A:Change the JDBC connection driver class inyour application server from “oracle.jdbc.driver.OracleDriver” to “oracle.jd">
-<meta property="og:updated_time" content="2016-12-06T05:52:11.000Z">
+<meta property="og:description" content="这次题出的比实习招聘要好，虽然不怎么会。。笔试后感谢大佬给我讲题，在此记录下这几题，题目应该不对，题意是对的。">
+<meta property="og:updated_time" content="2017-09-13T12:20:13.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="oracle-11g的一个坑">
-<meta name="twitter:description" content="Q:oracle 11g xe, ojdbc6, The Network Adapter could not establish the connection A:Change the JDBC connection driver class inyour application server from “oracle.jdbc.driver.OracleDriver” to “oracle.jd">
+<meta name="twitter:title" content="腾讯校招软件开发编程题writeup">
+<meta name="twitter:description" content="这次题出的比实习招聘要好，虽然不怎么会。。笔试后感谢大佬给我讲题，在此记录下这几题，题目应该不对，题意是对的。">
 
 
 
@@ -125,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="http://co2y.github.io/2015/12/08/oracle-11g-qa1/"/>
+  <link rel="canonical" href="http://co2y.github.io/2017/09/13/tecent-campus-recruiting-writeup/"/>
 
 
 
 
 
-  <title> oracle-11g的一个坑 | Co2y's Blog </title>
+  <title> 腾讯校招软件开发编程题writeup | Co2y's Blog </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -270,7 +270,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2015/12/08/oracle-11g-qa1/">
+  <link itemprop="mainEntityOfPage" href="http://co2y.github.io/2017/09/13/tecent-campus-recruiting-writeup/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Co2y">
@@ -294,7 +294,7 @@
             
             
               
-                oracle-11g的一个坑
+                腾讯校招软件开发编程题writeup
               
             
           </h1>
@@ -309,8 +309,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-12-08T16:26:33+08:00">
-                2015-12-08
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-13T18:20:26+08:00">
+                2017-09-13
               </time>
             
 
@@ -332,8 +332,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Oracle/" itemprop="url" rel="index">
-                    <span itemprop="name">Oracle</span>
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
                   </a>
                 </span>
 
@@ -350,8 +350,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2015/12/08/oracle-11g-qa1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/08/oracle-11g-qa1/" itemprop="commentCount"></span>
+                <a href="/2017/09/13/tecent-campus-recruiting-writeup/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/09/13/tecent-campus-recruiting-writeup/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -377,8 +377,19 @@
       
 
       
-        <p>Q:<br>oracle 11g xe, ojdbc6, The Network Adapter could not establish the connection</p>
-<p>A:<br>Change the JDBC connection driver class inyour application server from “oracle.jdbc.driver.OracleDriver” to “oracle.jdbc.OracleDriver”</p>
+        <p>这次题出的比实习招聘要好，虽然不怎么会。。笔试后感谢大佬给我讲题，在此记录下这几题，题目应该不对，题意是对的。</p>
+<a id="more"></a>
+<h2 id="数字变换"><a href="#数字变换" class="headerlink" title="数字变换"></a>数字变换</h2><p>输入4个数，a，b，c，d。每次可以对a，b进行同时加1，活着同时乘2. 问使得a=c，b=d的最小次数，若不能则输出-1。<code>a,b,c,d&lt;10^9</code></p>
+<h3 id="解"><a href="#解" class="headerlink" title="解"></a>解</h3><p>考虑同时加1不改变a和b的差，同时乘2使得a，b之差乘2. 因此根据c，d之差，找到需要乘2的次数。剩下的变换就是+1的次数。</p>
+<h2 id="硬币找零"><a href="#硬币找零" class="headerlink" title="硬币找零"></a>硬币找零</h2><p>你有很多硬币，价值为1，2，4，8，.. 2^k，每种价值有2个。输入n，问硬币组合成n的方案数。 例如n=6， 输出3. <code>n&lt;10^18</code></p>
+<h3 id="解-1"><a href="#解-1" class="headerlink" title="解"></a>解</h3><p>这里n很大，需要从硬币价值的特殊性和刚好2个入手。考虑n的二进制，<code>dp[i][j]</code>表示从低位到第i位,j=0表示无进位的方案数，j=1表示有进位的方案数。</p>
+<p>考虑第i位</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">若为1</div><div class="line">dp[<span class="string">i</span>][<span class="symbol">0</span>] += dp[<span class="string">i-1</span>][<span class="symbol">0</span>]</div><div class="line">dp[<span class="string">i</span>][<span class="symbol">0</span>] += dp[<span class="string">i-1</span>][<span class="symbol">1</span>]</div><div class="line">dp[<span class="string">i</span>][<span class="symbol">1</span>] += dp[<span class="string">i-1</span>][<span class="symbol">1</span>]</div><div class="line"></div><div class="line">若为0</div><div class="line">dp[<span class="string">i</span>][<span class="symbol">0</span>] += dp[<span class="string">i-1</span>][<span class="symbol">0</span>]</div><div class="line">dp[<span class="string">i</span>][<span class="symbol">1</span>] += dp[<span class="string">i-1</span>][<span class="symbol">0</span>]</div><div class="line">dp[<span class="string">i</span>][<span class="symbol">1</span>] += dp[<span class="string">i-1</span>][<span class="symbol">1</span>]</div><div class="line"></div><div class="line">初始</div><div class="line">dp[<span class="string">0</span>][<span class="symbol">0</span>] = 1</div><div class="line">若n最低位为1 dp[<span class="string">0</span>][<span class="symbol">1</span>] = 0 否则 dp[<span class="string">0</span>][<span class="symbol">1</span>] = 1</div></pre></td></tr></table></figure>
+<h2 id="魔法城市"><a href="#魔法城市" class="headerlink" title="魔法城市"></a>魔法城市</h2><p>给定一个n节点的无向图，所有节点都有通路，通路的权值在0-9。另有一个输入k，表示可以用k次魔法使k条边的权值减半，求节点0到节点1的最短路径。 n=100</p>
+<h3 id="解-2"><a href="#解-2" class="headerlink" title="解"></a>解</h3><p>本题的一个关键在于两两之间有通路，所以从节点0可以走1，2，3…n-1次到节点1.</p>
+<p><code>dp[i][j][k]</code> 表示第i个节点走j步到1，还可以用k次魔法。j从0到n-1.</p>
+<p><code>dp[i][j][k] = dp[其它的i][j-1][讨论k]</code>  </p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>算法菜了好多。。秋招没什么动力。。还是得练算法啊:)</p>
 
       
     </div>
@@ -402,9 +413,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/bug/" rel="tag"># bug</a>
-          
-            <a href="/tags/oracle/" rel="tag"># oracle</a>
+            <a href="/tags/algorithm/" rel="tag"># algorithm</a>
           
         </div>
       
@@ -417,8 +426,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/22/CS-01/" rel="next" title="客户端/服务器交互知识">
-                <i class="fa fa-chevron-left"></i> 客户端/服务器交互知识
+              <a href="/2017/07/20/hive-udf/" rel="next" title="Hive UDF开发的一些坑">
+                <i class="fa fa-chevron-left"></i> Hive UDF开发的一些坑
               </a>
             
           </div>
@@ -426,10 +435,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2015/12/27/docker-hadoop-hbase/" rel="prev" title="利用docker搭建hbase集群">
-                利用docker搭建hbase集群 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -455,8 +460,8 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="2015/12/08/oracle-11g-qa1/"
-           data-title="oracle-11g的一个坑" data-url="http://co2y.github.io/2015/12/08/oracle-11g-qa1/">
+      <div class="ds-thread" data-thread-key="2017/09/13/tecent-campus-recruiting-writeup/"
+           data-title="腾讯校招软件开发编程题writeup" data-url="http://co2y.github.io/2017/09/13/tecent-campus-recruiting-writeup/">
       </div>
     
   </div>
@@ -480,8 +485,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -559,6 +573,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数字变换"><span class="nav-number">1.</span> <span class="nav-text">数字变换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解"><span class="nav-number">1.1.</span> <span class="nav-text">解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#硬币找零"><span class="nav-number">2.</span> <span class="nav-text">硬币找零</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解-1"><span class="nav-number">2.1.</span> <span class="nav-text">解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#魔法城市"><span class="nav-number">3.</span> <span class="nav-text">魔法城市</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#解-2"><span class="nav-number">3.1.</span> <span class="nav-text">解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
